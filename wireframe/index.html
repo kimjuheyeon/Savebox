@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SaveBox - Wireframe Prototype</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', -apple-system, sans-serif;
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #1a1a1a;
+  }
+
+  /* Phone Frame */
+  .phone-frame {
+    width: 375px;
+    height: 812px;
+    background: #fff;
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    border: 8px solid #222;
+  }
+
+  .phone-inner {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Status Bar */
+  .status-bar {
+    height: 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    font-size: 14px;
+    font-weight: 600;
+    background: #fff;
+    z-index: 100;
+    position: relative;
+  }
+  .status-bar .time { font-weight: 600; }
+  .status-bar .icons { display: flex; gap: 6px; font-size: 12px; }
+
+  /* Screens */
+  .screen {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #fff;
+    display: none;
+    flex-direction: column;
+    z-index: 1;
+  }
+  .screen.active { display: flex; z-index: 10; }
+
+  /* ======================== */
+  /* SPLASH / LOGIN SCREEN    */
+  /* ======================== */
+  .screen-login {
+    background: linear-gradient(160deg, #6C63FF 0%, #4ECDC4 100%);
+    color: #fff;
+    align-items: center;
+    justify-content: center;
+  }
+  .screen-login .status-bar { background: transparent; color: #fff; }
+  .login-content {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 40px;
+    gap: 8px;
+  }
+  .login-logo {
+    width: 80px; height: 80px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px; margin-bottom: 16px;
+    backdrop-filter: blur(10px);
+  }
+  .login-title { font-size: 32px; font-weight: 700; }
+  .login-subtitle { font-size: 15px; opacity: 0.85; margin-bottom: 48px; text-align: center; line-height: 1.5; }
+
+  .login-btn {
+    width: 100%; padding: 16px;
+    border-radius: 14px; border: none;
+    font-size: 15px; font-weight: 600;
+    cursor: pointer; display: flex;
+    align-items: center; justify-content: center;
+    gap: 10px; margin-bottom: 12px;
+    font-family: inherit;
+    transition: transform 0.1s;
+  }
+  .login-btn:active { transform: scale(0.97); }
+  .login-btn.google { background: #fff; color: #333; }
+  .login-btn.apple { background: #000; color: #fff; }
+  .login-btn.email { background: rgba(255,255,255,0.2); color: #fff; border: 1.5px solid rgba(255,255,255,0.4); }
+  .login-btn .icon { font-size: 20px; }
+
+  .login-skip {
+    margin-top: 20px; font-size: 14px;
+    opacity: 0.7; cursor: pointer;
+    text-decoration: underline;
+    background: none; border: none; color: #fff;
+    font-family: inherit;
+  }
+
+  /* ======================== */
+  /* HOME SCREEN              */
+  /* ======================== */
+  .screen-home { background: #FAFAFA; }
+
+  .home-header {
+    padding: 8px 20px 16px;
+    background: #fff;
+  }
+  .home-header-top {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 16px;
+  }
+  .home-header h1 {
+    font-size: 26px; font-weight: 700; color: #1a1a1a;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .home-header h1 .logo-sm {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: linear-gradient(135deg, #6C63FF, #4ECDC4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: #fff;
+  }
+  .home-actions { display: flex; gap: 8px; }
+  .icon-btn {
+    width: 40px; height: 40px;
+    border-radius: 12px; border: none;
+    background: #F2F2F7; cursor: pointer;
+    font-size: 18px; display: flex;
+    align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .icon-btn:active { background: #E5E5EA; }
+
+  /* Collections Grid */
+  .collections-area {
+    flex: 1; overflow-y: auto;
+    padding: 16px 16px 100px;
+  }
+  .section-label {
+    font-size: 13px; font-weight: 600;
+    color: #8E8E93; margin-bottom: 12px;
+    padding-left: 4px;
+  }
+  .collections-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .collection-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .collection-card:active { transform: scale(0.97); }
+  .collection-thumb {
+    width: 100%; height: 120px;
+    background: #E5E5EA;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; position: relative;
+  }
+  .collection-thumb.all { background: linear-gradient(135deg, #6C63FF22, #4ECDC422); }
+  .collection-thumb.food { background: linear-gradient(135deg, #FF634722, #FFB74D22); }
+  .collection-thumb.interior { background: linear-gradient(135deg, #4ECDC422, #45B7D122); }
+  .collection-thumb.marketing { background: linear-gradient(135deg, #AB47BC22, #7E57C222); }
+  .collection-thumb.fashion { background: linear-gradient(135deg, #EC407A22, #F4845F22); }
+  .collection-thumb.travel { background: linear-gradient(135deg, #29B6F622, #26C6DA22); }
+
+  .collection-count {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(0,0,0,0.5); color: #fff;
+    font-size: 11px; font-weight: 600;
+    padding: 2px 8px; border-radius: 10px;
+  }
+  .collection-info { padding: 12px; }
+  .collection-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .collection-meta { font-size: 12px; color: #8E8E93; }
+
+  .collection-card.add-new {
+    border: 2px dashed #D1D1D6;
+    background: transparent;
+    box-shadow: none;
+  }
+  .collection-card.add-new .collection-thumb {
+    background: transparent;
+    color: #8E8E93;
+  }
+  .collection-card.add-new .collection-name {
+    color: #8E8E93; text-align: center;
+  }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 84px; background: #fff;
+    border-top: 1px solid #E5E5EA;
+    display: flex; justify-content: space-around;
+    align-items: flex-start; padding-top: 10px;
+    z-index: 50;
+  }
+  .tab-item {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 4px;
+    cursor: pointer; border: none;
+    background: none; color: #8E8E93;
+    font-family: inherit; font-size: 10px;
+    transition: color 0.15s;
+  }
+  .tab-item .tab-icon { font-size: 24px; }
+  .tab-item.active { color: #6C63FF; }
+
+  /* ======================== */
+  /* COLLECTION DETAIL SCREEN */
+  /* ======================== */
+  .screen-detail { background: #FAFAFA; }
+
+  .detail-header {
+    padding: 4px 16px 12px;
+    background: #fff;
+    display: flex; flex-direction: column;
+  }
+  .detail-nav {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 8px;
+  }
+  .back-btn {
+    display: flex; align-items: center; gap: 4px;
+    border: none; background: none;
+    color: #6C63FF; font-size: 16px;
+    cursor: pointer; font-family: inherit;
+    font-weight: 500; padding: 4px 0;
+  }
+  .detail-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .detail-meta { font-size: 13px; color: #8E8E93; margin-bottom: 12px; }
+
+  /* View Toggle */
+  .view-toggle {
+    display: flex; background: #F2F2F7;
+    border-radius: 10px; padding: 3px;
+    margin-bottom: 4px; align-self: flex-start;
+  }
+  .view-toggle-btn {
+    padding: 6px 16px; border-radius: 8px;
+    border: none; background: transparent;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; font-family: inherit;
+    color: #8E8E93; transition: all 0.2s;
+  }
+  .view-toggle-btn.active {
+    background: #fff; color: #1a1a1a;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
+
+  /* Content Area */
+  .content-area {
+    flex: 1; overflow-y: auto;
+    padding: 12px 16px 20px;
+  }
+
+  /* Album View */
+  .album-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .album-item {
+    border-radius: 12px; overflow: hidden;
+    background: #fff; cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    transition: transform 0.15s;
+  }
+  .album-item:active { transform: scale(0.97); }
+  .album-thumb {
+    width: 100%; height: 130px;
+    display: flex; align-items: center;
+    justify-content: center; font-size: 40px;
+    position: relative;
+  }
+  .album-thumb .platform-badge {
+    position: absolute; top: 8px; left: 8px;
+    font-size: 14px; background: rgba(255,255,255,0.9);
+    width: 26px; height: 26px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .album-thumb .color-tag {
+    position: absolute; top: 8px; right: 8px;
+    width: 12px; height: 12px; border-radius: 50%;
+  }
+  .album-info { padding: 10px; }
+  .album-title {
+    font-size: 13px; font-weight: 500;
+    overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .album-source { font-size: 11px; color: #8E8E93; margin-top: 2px; }
+
+  /* List View */
+  .list-view { display: none; flex-direction: column; gap: 8px; }
+  .list-item {
+    display: flex; gap: 12px;
+    background: #fff; border-radius: 12px;
+    padding: 12px; cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    transition: transform 0.15s;
+  }
+  .list-item:active { transform: scale(0.97); }
+  .list-thumb {
+    width: 72px; height: 72px;
+    border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center;
+    justify-content: center; font-size: 28px;
+  }
+  .list-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .list-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; line-height: 1.3; }
+  .list-desc { font-size: 12px; color: #8E8E93; line-height: 1.3; margin-bottom: 4px; }
+  .list-meta-row { display: flex; gap: 8px; align-items: center; }
+  .list-platform {
+    font-size: 11px; color: #6C63FF;
+    background: #6C63FF11; padding: 2px 8px;
+    border-radius: 6px; font-weight: 500;
+  }
+  .list-date { font-size: 11px; color: #AEAEB2; }
+
+  /* ======================== */
+  /* SEARCH SCREEN            */
+  /* ======================== */
+  .screen-search { background: #FAFAFA; }
+
+  .search-header {
+    padding: 8px 16px 12px;
+    background: #fff;
+  }
+  .search-bar {
+    display: flex; align-items: center;
+    background: #F2F2F7; border-radius: 12px;
+    padding: 10px 14px; gap: 8px;
+    margin-bottom: 12px;
+  }
+  .search-bar input {
+    flex: 1; border: none; background: transparent;
+    font-size: 15px; font-family: inherit;
+    outline: none; color: #1a1a1a;
+  }
+  .search-bar input::placeholder { color: #AEAEB2; }
+  .search-bar .search-icon { color: #8E8E93; font-size: 16px; }
+
+  .filter-chips {
+    display: flex; gap: 8px; overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .filter-chip {
+    padding: 6px 14px; border-radius: 20px;
+    border: 1.5px solid #E5E5EA; background: #fff;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; white-space: nowrap;
+    font-family: inherit; color: #1a1a1a;
+    transition: all 0.15s;
+  }
+  .filter-chip.active {
+    background: #6C63FF; color: #fff;
+    border-color: #6C63FF;
+  }
+  .search-results {
+    flex: 1; overflow-y: auto;
+    padding: 16px;
+  }
+  .search-results .list-item { margin-bottom: 8px; }
+
+  .search-empty {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 20px; color: #AEAEB2;
+  }
+  .search-empty .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .search-empty .empty-text { font-size: 15px; }
+
+  /* ======================== */
+  /* CONTENT DETAIL SCREEN    */
+  /* ======================== */
+  .screen-content { background: #fff; }
+  .content-detail-header {
+    padding: 4px 16px 12px;
+    display: flex; flex-direction: column;
+  }
+  .content-hero {
+    width: 100%; height: 240px;
+    display: flex; align-items: center;
+    justify-content: center; font-size: 64px;
+    background: #F2F2F7; margin: 0 -16px;
+    width: calc(100% + 32px);
+  }
+  .content-detail-body { padding: 20px 16px; flex: 1; overflow-y: auto; }
+  .content-detail-title {
+    font-size: 20px; font-weight: 700;
+    margin-bottom: 8px; line-height: 1.4;
+  }
+  .content-detail-source {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 20px;
+  }
+  .content-detail-source .badge {
+    background: #6C63FF; color: #fff;
+    padding: 4px 10px; border-radius: 8px;
+    font-size: 12px; font-weight: 600;
+  }
+  .content-detail-source .date { font-size: 13px; color: #8E8E93; }
+
+  .content-section { margin-bottom: 20px; }
+  .content-section-label {
+    font-size: 13px; font-weight: 600;
+    color: #8E8E93; margin-bottom: 8px;
+  }
+  .color-tags-row { display: flex; gap: 10px; }
+  .color-tag-item {
+    width: 28px; height: 28px;
+    border-radius: 50%; cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.15s;
+  }
+  .color-tag-item:active { transform: scale(0.9); }
+  .color-tag-item.selected { border-color: #1a1a1a; transform: scale(1.15); }
+
+  .memo-input {
+    width: 100%; padding: 14px;
+    border-radius: 12px; border: 1.5px solid #E5E5EA;
+    font-size: 14px; font-family: inherit;
+    resize: none; height: 80px;
+    outline: none; transition: border-color 0.15s;
+  }
+  .memo-input:focus { border-color: #6C63FF; }
+
+  .open-link-btn {
+    width: 100%; padding: 16px;
+    background: #6C63FF; color: #fff;
+    border: none; border-radius: 14px;
+    font-size: 15px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    margin-top: 12px;
+    transition: opacity 0.15s;
+  }
+  .open-link-btn:active { opacity: 0.85; }
+
+  /* ======================== */
+  /* QUICK SAVE OVERLAY       */
+  /* ======================== */
+  .quick-save-overlay {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200; display: none;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .quick-save-overlay.active { display: flex; }
+
+  .quick-save-sheet {
+    background: #fff;
+    border-radius: 20px 20px 0 0;
+    padding: 20px 20px 40px;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .quick-save-handle {
+    width: 40px; height: 4px;
+    background: #D1D1D6; border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+  .quick-save-title {
+    font-size: 18px; font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .quick-save-url {
+    font-size: 13px; color: #8E8E93;
+    margin-bottom: 16px;
+    overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .qs-section-label {
+    font-size: 13px; font-weight: 600;
+    color: #8E8E93; margin-bottom: 8px;
+  }
+  .qs-collections {
+    display: flex; flex-direction: column;
+    gap: 8px; margin-bottom: 16px;
+  }
+  .qs-collection-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px; border-radius: 12px;
+    border: 1.5px solid #E5E5EA;
+    cursor: pointer; transition: all 0.15s;
+    background: #fff;
+  }
+  .qs-collection-item:active { background: #F2F2F7; }
+  .qs-collection-item.selected {
+    border-color: #6C63FF;
+    background: #6C63FF08;
+  }
+  .qs-collection-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px; background: #F2F2F7;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .qs-collection-name { font-size: 14px; font-weight: 500; flex: 1; }
+  .qs-collection-check {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid #D1D1D6; display: flex;
+    align-items: center; justify-content: center;
+    font-size: 12px; color: transparent;
+    transition: all 0.15s;
+  }
+  .qs-collection-item.selected .qs-collection-check {
+    background: #6C63FF; border-color: #6C63FF;
+    color: #fff;
+  }
+
+  .qs-color-tags {
+    display: flex; gap: 10px;
+    margin-bottom: 20px;
+  }
+  .qs-color-tag {
+    width: 28px; height: 28px; border-radius: 50%;
+    cursor: pointer; border: 2px solid transparent;
+    transition: transform 0.15s;
+  }
+  .qs-color-tag:active { transform: scale(0.9); }
+  .qs-color-tag.selected { border-color: #333; transform: scale(1.15); }
+
+  .qs-save-btn {
+    width: 100%; padding: 16px;
+    background: #6C63FF; color: #fff;
+    border: none; border-radius: 14px;
+    font-size: 16px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    transition: opacity 0.15s;
+  }
+  .qs-save-btn:active { opacity: 0.85; }
+
+  /* Snackbar */
+  .snackbar {
+    position: absolute; bottom: 100px;
+    left: 16px; right: 16px;
+    background: #1a1a1a; color: #fff;
+    padding: 14px 16px; border-radius: 14px;
+    display: none; align-items: center;
+    justify-content: space-between;
+    z-index: 300;
+    animation: fadeInUp 0.3s ease;
+  }
+  .snackbar.active { display: flex; }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .snackbar-text { font-size: 14px; font-weight: 500; }
+  .snackbar-btn {
+    background: #6C63FF; color: #fff;
+    border: none; padding: 8px 14px;
+    border-radius: 8px; font-size: 13px;
+    font-weight: 600; cursor: pointer;
+    font-family: inherit;
+  }
+
+  /* ======================== */
+  /* NEW COLLECTION SCREEN    */
+  /* ======================== */
+  .screen-new-collection { background: #fff; }
+  .new-col-header {
+    padding: 4px 16px 12px;
+    display: flex; justify-content: space-between;
+    align-items: center;
+  }
+  .cancel-btn {
+    border: none; background: none;
+    color: #8E8E93; font-size: 16px;
+    cursor: pointer; font-family: inherit;
+  }
+  .save-header-btn {
+    border: none; background: none;
+    color: #6C63FF; font-size: 16px;
+    font-weight: 600; cursor: pointer;
+    font-family: inherit;
+  }
+  .new-col-body { padding: 16px; flex: 1; }
+  .new-col-thumb-area {
+    width: 100%; height: 180px;
+    background: #F2F2F7; border-radius: 16px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    margin-bottom: 24px; cursor: pointer;
+    color: #8E8E93; gap: 8px;
+  }
+  .new-col-thumb-area .cam-icon { font-size: 32px; }
+  .new-col-thumb-area .cam-text { font-size: 14px; }
+
+  .form-group { margin-bottom: 20px; }
+  .form-label {
+    font-size: 13px; font-weight: 600;
+    color: #8E8E93; margin-bottom: 8px;
+    display: block;
+  }
+  .form-input {
+    width: 100%; padding: 14px;
+    border: 1.5px solid #E5E5EA;
+    border-radius: 12px; font-size: 15px;
+    font-family: inherit; outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: #6C63FF; }
+
+  .url-input-row {
+    display: flex; gap: 8px;
+  }
+  .url-input-row input { flex: 1; }
+  .paste-btn {
+    padding: 14px 16px; border-radius: 12px;
+    border: 1.5px solid #6C63FF;
+    background: #6C63FF08; color: #6C63FF;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    white-space: nowrap;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .url-status {
+    margin-top: 6px; font-size: 12px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .url-status.valid { color: #34C759; }
+  .url-status.invalid { color: #FF3B30; }
+
+  /* ======================== */
+  /* SETTINGS SCREEN          */
+  /* ======================== */
+  .screen-settings { background: #FAFAFA; }
+  .settings-header {
+    padding: 8px 16px 12px;
+    background: #fff;
+  }
+  .settings-header h2 { font-size: 22px; font-weight: 700; }
+  .settings-body { flex: 1; overflow-y: auto; padding: 16px; }
+  .settings-group { margin-bottom: 20px; }
+  .settings-group-title {
+    font-size: 13px; font-weight: 600;
+    color: #8E8E93; margin-bottom: 8px;
+    padding-left: 4px;
+  }
+  .settings-card {
+    background: #fff; border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .settings-item {
+    display: flex; align-items: center;
+    padding: 14px 16px; gap: 12px;
+    border-bottom: 1px solid #F2F2F7;
+    cursor: pointer;
+  }
+  .settings-item:last-child { border-bottom: none; }
+  .settings-item .s-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .settings-item .s-label { flex: 1; font-size: 15px; }
+  .settings-item .s-arrow { color: #C7C7CC; font-size: 14px; }
+
+  .profile-card {
+    display: flex; align-items: center;
+    padding: 16px; gap: 14px;
+    background: #fff; border-radius: 14px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .profile-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: linear-gradient(135deg, #6C63FF, #4ECDC4);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 20px; font-weight: 700;
+  }
+  .profile-info .p-name { font-size: 16px; font-weight: 600; }
+  .profile-info .p-email { font-size: 13px; color: #8E8E93; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 0; }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="phone-inner">
+
+    <!-- ============ LOGIN SCREEN ============ -->
+    <div class="screen screen-login active" id="screen-login">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">●●● ▶ 🔋</span>
+      </div>
+      <div class="login-content">
+        <div class="login-logo">📦</div>
+        <div class="login-title">SaveBox</div>
+        <div class="login-subtitle">SNS에 흩어진 북마크를<br>하나의 공간에서 관리하세요</div>
+        <button class="login-btn google" onclick="goTo('screen-home')">
+          <span class="icon">G</span> Google로 계속하기
+        </button>
+        <button class="login-btn apple" onclick="goTo('screen-home')">
+          <span class="icon"></span> Apple로 계속하기
+        </button>
+        <button class="login-btn email" onclick="goTo('screen-home')">
+          <span class="icon">✉</span> 이메일로 시작하기
+        </button>
+        <button class="login-skip" onclick="goTo('screen-home')">로그인 없이 둘러보기</button>
+      </div>
+    </div>
+
+    <!-- ============ HOME SCREEN ============ -->
+    <div class="screen screen-home" id="screen-home">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">●●● ▶ 🔋</span>
+      </div>
+      <div class="home-header">
+        <div class="home-header-top">
+          <h1><span class="logo-sm">📦</span> SaveBox</h1>
+          <div class="home-actions">
+            <button class="icon-btn" onclick="goTo('screen-search')">🔍</button>
+            <button class="icon-btn" onclick="showQuickSave()">＋</button>
+          </div>
+        </div>
+      </div>
+      <div class="collections-area">
+        <div class="section-label">내 컬렉션 (5)</div>
+        <div class="collections-grid">
+          <div class="collection-card" onclick="goTo('screen-detail')">
+            <div class="collection-thumb all">📋<span class="collection-count">24</span></div>
+            <div class="collection-info">
+              <div class="collection-name">전체</div>
+              <div class="collection-meta">24개 콘텐츠</div>
+            </div>
+          </div>
+          <div class="collection-card" onclick="goTo('screen-detail')">
+            <div class="collection-thumb food">🍳<span class="collection-count">8</span></div>
+            <div class="collection-info">
+              <div class="collection-name">레시피 모음</div>
+              <div class="collection-meta">8개 콘텐츠</div>
+            </div>
+          </div>
+          <div class="collection-card" onclick="goTo('screen-detail')">
+            <div class="collection-thumb interior">🏠<span class="collection-count">6</span></div>
+            <div class="collection-info">
+              <div class="collection-name">인테리어</div>
+              <div class="collection-meta">6개 콘텐츠</div>
+            </div>
+          </div>
+          <div class="collection-card" onclick="goTo('screen-detail')">
+            <div class="collection-thumb marketing">📊<span class="collection-count">5</span></div>
+            <div class="collection-info">
+              <div class="collection-name">마케팅 레퍼런스</div>
+              <div class="collection-meta">5개 콘텐츠</div>
+            </div>
+          </div>
+          <div class="collection-card" onclick="goTo('screen-detail')">
+            <div class="collection-thumb fashion">👗<span class="collection-count">3</span></div>
+            <div class="collection-info">
+              <div class="collection-name">패션</div>
+              <div class="collection-meta">3개 콘텐츠</div>
+            </div>
+          </div>
+          <div class="collection-card add-new" onclick="goTo('screen-new-collection')">
+            <div class="collection-thumb">＋</div>
+            <div class="collection-info">
+              <div class="collection-name">새 컬렉션</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <button class="tab-item active" onclick="goTo('screen-home')">
+          <span class="tab-icon">🏠</span> 홈
+        </button>
+        <button class="tab-item" onclick="goTo('screen-search')">
+          <span class="tab-icon">🔍</span> 검색
+        </button>
+        <button class="tab-item" onclick="showQuickSave()">
+          <span class="tab-icon">➕</span> 저장
+        </button>
+        <button class="tab-item" onclick="goTo('screen-settings')">
+          <span class="tab-icon">⚙️</span> 설정
+        </button>
+      </div>
+    </div>
+
+    <!-- ============ COLLECTION DETAIL SCREEN ============ -->
+    <div class="screen screen-detail" id="screen-detail">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">●●● ▶ 🔋</span>
+      </div>
+      <div class="detail-header">
+        <div class="detail-nav">
+          <button class="back-btn" onclick="goTo('screen-home')">← 뒤로</button>
+          <button class="icon-btn" style="width:32px;height:32px;font-size:14px;">⋯</button>
+        </div>
+        <div class="detail-title">🍳 레시피 모음</div>
+        <div class="detail-meta">8개 콘텐츠 · 최근 업데이트 오늘</div>
+        <div class="view-toggle">
+          <button class="view-toggle-btn active" onclick="switchView('album')">앨범형</button>
+          <button class="view-toggle-btn" onclick="switchView('list')">리스트형</button>
+        </div>
+      </div>
+      <div class="content-area">
+        <!-- Album View -->
+        <div class="album-grid" id="album-view">
+          <div class="album-item" onclick="goTo('screen-content')">
+            <div class="album-thumb" style="background:#FFF3E0;">
+              <span class="platform-badge">📷</span>
+              <span class="color-tag" style="background:#FF6347;"></span>
+              🍝
+            </div>
+            <div class="album-info">
+              <div class="album-title">원팬 토마토 파스타</div>
+              <div class="album-source">Instagram · 2시간 전</div>
+            </div>
+          </div>
+          <div class="album-item" onclick="goTo('screen-content')">
+            <div class="album-thumb" style="background:#FFF8E1;">
+              <span class="platform-badge">▶️</span>
+              <span class="color-tag" style="background:#FFB74D;"></span>
+              🥘
+            </div>
+            <div class="album-info">
+              <div class="album-title">백종원 김치찌개</div>
+              <div class="album-source">YouTube · 5시간 전</div>
+            </div>
+          </div>
+          <div class="album-item" onclick="goTo('screen-content')">
+            <div class="album-thumb" style="background:#E8F5E9;">
+              <span class="platform-badge">📷</span>
+              <span class="color-tag" style="background:#66BB6A;"></span>
+              🥗
+            </div>
+            <div class="album-info">
+              <div class="album-title">다이어트 샐러드 레시피</div>
+              <div class="album-source">Instagram · 1일 전</div>
+            </div>
+          </div>
+          <div class="album-item" onclick="goTo('screen-content')">
+            <div class="album-thumb" style="background:#E3F2FD;">
+              <span class="platform-badge">📌</span>
+              <span class="color-tag" style="background:#42A5F5;"></span>
+              🍰
+            </div>
+            <div class="album-info">
+              <div class="album-title">노오븐 치즈케이크</div>
+              <div class="album-source">Pinterest · 2일 전</div>
+            </div>
+          </div>
+          <div class="album-item" onclick="goTo('screen-content')">
+            <div class="album-thumb" style="background:#FCE4EC;">
+              <span class="platform-badge">▶️</span>
+              <span class="color-tag" style="background:#EC407A;"></span>
+              🍜
+            </div>
+            <div class="album-info">
+              <div class="album-title">라멘 끓이는 법</div>
+              <div class="album-source">YouTube · 3일 전</div>
+            </div>
+          </div>
+          <div class="album-item" onclick="goTo('screen-content')">
+            <div class="album-thumb" style="background:#F3E5F5;">
+              <span class="platform-badge">🐦</span>
+              <span class="color-tag" style="background:#AB47BC;"></span>
+              🧁
+            </div>
+            <div class="album-info">
+              <div class="album-title">3분 머그컵 케이크</div>
+              <div class="album-source">Twitter · 5일 전</div>
+            </div>
+          </div>
+        </div>
+        <!-- List View -->
+        <div class="list-view" id="list-view">
+          <div class="list-item" onclick="goTo('screen-content')">
+            <div class="list-thumb" style="background:#FFF3E0;">🍝</div>
+            <div class="list-info">
+              <div class="list-title">원팬 토마토 파스타</div>
+              <div class="list-desc">간단하게 만드는 원팬 파스타 레시피</div>
+              <div class="list-meta-row">
+                <span class="list-platform">Instagram</span>
+                <span class="list-date">2시간 전</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-item" onclick="goTo('screen-content')">
+            <div class="list-thumb" style="background:#FFF8E1;">🥘</div>
+            <div class="list-info">
+              <div class="list-title">백종원 김치찌개</div>
+              <div class="list-desc">백종원의 요리비결 김치찌개 레시피</div>
+              <div class="list-meta-row">
+                <span class="list-platform">YouTube</span>
+                <span class="list-date">5시간 전</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-item" onclick="goTo('screen-content')">
+            <div class="list-thumb" style="background:#E8F5E9;">🥗</div>
+            <div class="list-info">
+              <div class="list-title">다이어트 샐러드 레시피</div>
+              <div class="list-desc">건강하고 맛있는 샐러드 5가지</div>
+              <div class="list-meta-row">
+                <span class="list-platform">Instagram</span>
+                <span class="list-date">1일 전</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-item" onclick="goTo('screen-content')">
+            <div class="list-thumb" style="background:#E3F2FD;">🍰</div>
+            <div class="list-info">
+              <div class="list-title">노오븐 치즈케이크</div>
+              <div class="list-desc">오븐 없이 만드는 간단 치즈케이크</div>
+              <div class="list-meta-row">
+                <span class="list-platform">Pinterest</span>
+                <span class="list-date">2일 전</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-item" onclick="goTo('screen-content')">
+            <div class="list-thumb" style="background:#FCE4EC;">🍜</div>
+            <div class="list-info">
+              <div class="list-title">라멘 끓이는 법</div>
+              <div class="list-desc">일본 현지 스타일 라멘 레시피</div>
+              <div class="list-meta-row">
+                <span class="list-platform">YouTube</span>
+                <span class="list-date">3일 전</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-item" onclick="goTo('screen-content')">
+            <div class="list-thumb" style="background:#F3E5F5;">🧁</div>
+            <div class="list-info">
+              <div class="list-title">3분 머그컵 케이크</div>
+              <div class="list-desc">전자레인지로 만드는 초간단 케이크</div>
+              <div class="list-meta-row">
+                <span class="list-platform">Twitter</span>
+                <span class="list-date">5일 전</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SEARCH SCREEN ============ -->
+    <div class="screen screen-search" id="screen-search">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">●●● ▶ 🔋</span>
+      </div>
+      <div class="search-header">
+        <div class="detail-nav">
+          <button class="back-btn" onclick="goTo('screen-home')">← 뒤로</button>
+        </div>
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="제목, 메모로 검색" id="searchInput" oninput="handleSearch()">
+        </div>
+        <div class="filter-chips">
+          <button class="filter-chip active" onclick="toggleFilter(this)">전체</button>
+          <button class="filter-chip" onclick="toggleFilter(this)">📷 Instagram</button>
+          <button class="filter-chip" onclick="toggleFilter(this)">▶️ YouTube</button>
+          <button class="filter-chip" onclick="toggleFilter(this)">🐦 Twitter</button>
+          <button class="filter-chip" onclick="toggleFilter(this)">📌 Pinterest</button>
+          <button class="filter-chip" onclick="toggleFilter(this)">🎵 TikTok</button>
+        </div>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-empty">
+          <div class="empty-icon">🔍</div>
+          <div class="empty-text">검색어를 입력해주세요</div>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <button class="tab-item" onclick="goTo('screen-home')">
+          <span class="tab-icon">🏠</span> 홈
+        </button>
+        <button class="tab-item active" onclick="goTo('screen-search')">
+          <span class="tab-icon">🔍</span> 검색
+        </button>
+        <button class="tab-item" onclick="showQuickSave()">
+          <span class="tab-icon">➕</span> 저장
+        </button>
+        <button class="tab-item" onclick="goTo('screen-settings')">
+          <span class="tab-icon">⚙️</span> 설정
+        </button>
+      </div>
+    </div>
+
+    <!-- ============ CONTENT DETAIL SCREEN ============ -->
+    <div class="screen screen-content" id="screen-content">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">●●● ▶ 🔋</span>
+      </div>
+      <div class="content-detail-header">
+        <div class="detail-nav">
+          <button class="back-btn" onclick="goTo('screen-detail')">← 뒤로</button>
+          <button class="icon-btn" style="width:32px;height:32px;font-size:14px;">🗑</button>
+        </div>
+      </div>
+      <div class="content-hero">🍝</div>
+      <div class="content-detail-body">
+        <div class="content-detail-title">원팬 토마토 파스타 레시피</div>
+        <div class="content-detail-source">
+          <span class="badge">📷 Instagram</span>
+          <span class="date">2시간 전 저장</span>
+        </div>
+
+        <div class="content-section">
+          <div class="content-section-label">컬러 태그</div>
+          <div class="color-tags-row">
+            <div class="color-tag-item selected" style="background:#FF6347;" onclick="selectColorTag(this)"></div>
+            <div class="color-tag-item" style="background:#FFB74D;" onclick="selectColorTag(this)"></div>
+            <div class="color-tag-item" style="background:#FFEE58;" onclick="selectColorTag(this)"></div>
+            <div class="color-tag-item" style="background:#66BB6A;" onclick="selectColorTag(this)"></div>
+            <div class="color-tag-item" style="background:#42A5F5;" onclick="selectColorTag(this)"></div>
+            <div class="color-tag-item" style="background:#7E57C2;" onclick="selectColorTag(this)"></div>
+            <div class="color-tag-item" style="background:#EC407A;" onclick="selectColorTag(this)"></div>
+          </div>
+        </div>
+
+        <div class="content-section">
+          <div class="content-section-label">메모</div>
+          <textarea class="memo-input" placeholder="메모를 입력하세요...">주말에 만들어보기! 토마토 소스 넉넉히</textarea>
+        </div>
+
+        <div class="content-section">
+          <div class="content-section-label">컬렉션</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:14px;background:#F2F2F7;padding:6px 12px;border-radius:8px;">🍳 레시피 모음</span>
+          </div>
+        </div>
+
+        <button class="open-link-btn">원본 링크 열기 →</button>
+      </div>
+    </div>
+
+    <!-- ============ NEW COLLECTION SCREEN ============ -->
+    <div class="screen screen-new-collection" id="screen-new-collection">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">●●● ▶ 🔋</span>
+      </div>
+      <div class="new-col-header">
+        <button class="cancel-btn" onclick="goTo('screen-home')">취소</button>
+        <span style="font-weight:600;font-size:16px;">새 컬렉션</span>
+        <button class="save-header-btn" onclick="goTo('screen-home')">저장</button>
+      </div>
+      <div class="new-col-body">
+        <div class="new-col-thumb-area">
+          <div class="cam-icon">📷</div>
+          <div class="cam-text">커버 이미지 추가</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">컬렉션 이름</label>
+          <input type="text" class="form-input" placeholder="예: 여행 버킷리스트">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">URL 직접 추가</label>
+          <div class="url-input-row">
+            <input type="text" class="form-input" placeholder="URL을 입력하세요" id="urlInput" oninput="validateUrl()">
+            <button class="paste-btn" onclick="pasteUrl()">📋 붙여넣기</button>
+          </div>
+          <div class="url-status" id="urlStatus"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">컬러 태그</label>
+          <div class="color-tags-row">
+            <div class="color-tag-item" style="background:#FF6347;" onclick="selectColorTag(this)"></div>
+            <div class="color-tag-item" style="background:#FFB74D;" onclick="selectColorTag(this)"></div>
+            <div class="color-tag-item" style="background:#FFEE58;" onclick="selectColorTag(this)"></div>
+            <div class="color-tag-item" style="background:#66BB6A;" onclick="selectColorTag(this)"></div>
+            <div class="color-tag-item" style="background:#42A5F5;" onclick="selectColorTag(this)"></div>
+            <div class="color-tag-item" style="background:#7E57C2;" onclick="selectColorTag(this)"></div>
+            <div class="color-tag-item" style="background:#EC407A;" onclick="selectColorTag(this)"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SETTINGS SCREEN ============ -->
+    <div class="screen screen-settings" id="screen-settings">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">●●● ▶ 🔋</span>
+      </div>
+      <div class="settings-header">
+        <div class="detail-nav">
+          <button class="back-btn" onclick="goTo('screen-home')">← 뒤로</button>
+        </div>
+        <h2>설정</h2>
+      </div>
+      <div class="settings-body">
+        <div class="profile-card">
+          <div class="profile-avatar">지</div>
+          <div class="profile-info">
+            <div class="p-name">김지연</div>
+            <div class="p-email">jiyeon@email.com</div>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">일반</div>
+          <div class="settings-card">
+            <div class="settings-item">
+              <div class="s-icon" style="background:#F2F2F7;">🔔</div>
+              <div class="s-label">알림 설정</div>
+              <div class="s-arrow">›</div>
+            </div>
+            <div class="settings-item">
+              <div class="s-icon" style="background:#F2F2F7;">🌙</div>
+              <div class="s-label">다크 모드</div>
+              <div class="s-arrow">›</div>
+            </div>
+            <div class="settings-item">
+              <div class="s-icon" style="background:#F2F2F7;">🌐</div>
+              <div class="s-label">언어</div>
+              <div class="s-arrow">한국어 ›</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">연동된 플랫폼</div>
+          <div class="settings-card">
+            <div class="settings-item">
+              <div class="s-icon" style="background:#FFEEF1;">📷</div>
+              <div class="s-label">Instagram</div>
+              <div class="s-arrow" style="color:#34C759;">연동됨</div>
+            </div>
+            <div class="settings-item">
+              <div class="s-icon" style="background:#FFEBEE;">▶️</div>
+              <div class="s-label">YouTube</div>
+              <div class="s-arrow" style="color:#34C759;">연동됨</div>
+            </div>
+            <div class="settings-item">
+              <div class="s-icon" style="background:#E3F2FD;">🐦</div>
+              <div class="s-label">Twitter (X)</div>
+              <div class="s-arrow" style="color:#34C759;">연동됨</div>
+            </div>
+            <div class="settings-item">
+              <div class="s-icon" style="background:#FCE4EC;">📌</div>
+              <div class="s-label">Pinterest</div>
+              <div class="s-arrow" style="color:#8E8E93;">연동하기 ›</div>
+            </div>
+            <div class="settings-item">
+              <div class="s-icon" style="background:#F3E5F5;">🎵</div>
+              <div class="s-label">TikTok</div>
+              <div class="s-arrow" style="color:#8E8E93;">연동하기 ›</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">계정</div>
+          <div class="settings-card">
+            <div class="settings-item">
+              <div class="s-icon" style="background:#FFF8E1;">⭐</div>
+              <div class="s-label">프리미엄 업그레이드</div>
+              <div class="s-arrow">›</div>
+            </div>
+            <div class="settings-item">
+              <div class="s-icon" style="background:#F2F2F7;">💾</div>
+              <div class="s-label">데이터 백업</div>
+              <div class="s-arrow">›</div>
+            </div>
+            <div class="settings-item">
+              <div class="s-icon" style="background:#F2F2F7;">📄</div>
+              <div class="s-label">이용약관</div>
+              <div class="s-arrow">›</div>
+            </div>
+            <div class="settings-item">
+              <div class="s-icon" style="background:#F2F2F7;">🔒</div>
+              <div class="s-label">개인정보 처리방침</div>
+              <div class="s-arrow">›</div>
+            </div>
+            <div class="settings-item" onclick="goTo('screen-login')">
+              <div class="s-icon" style="background:#FFEBEE;">🚪</div>
+              <div class="s-label" style="color:#FF3B30;">로그아웃</div>
+              <div class="s-arrow"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align:center;padding:20px 0 40px;color:#AEAEB2;font-size:12px;">
+          SaveBox v1.0.0
+        </div>
+      </div>
+      <div class="tab-bar">
+        <button class="tab-item" onclick="goTo('screen-home')">
+          <span class="tab-icon">🏠</span> 홈
+        </button>
+        <button class="tab-item" onclick="goTo('screen-search')">
+          <span class="tab-icon">🔍</span> 검색
+        </button>
+        <button class="tab-item" onclick="showQuickSave()">
+          <span class="tab-icon">➕</span> 저장
+        </button>
+        <button class="tab-item active" onclick="goTo('screen-settings')">
+          <span class="tab-icon">⚙️</span> 설정
+        </button>
+      </div>
+    </div>
+
+    <!-- ============ QUICK SAVE OVERLAY ============ -->
+    <div class="quick-save-overlay" id="quickSaveOverlay" onclick="closeQuickSave(event)">
+      <div class="quick-save-sheet" onclick="event.stopPropagation()">
+        <div class="quick-save-handle"></div>
+        <div class="quick-save-title">콘텐츠 저장하기</div>
+        <div class="quick-save-url">instagram.com/p/recipe_pasta_2026...</div>
+
+        <div class="qs-section-label" style="margin-top:16px;">컬렉션 선택</div>
+        <div class="qs-collections">
+          <div class="qs-collection-item" onclick="selectQsCollection(this)">
+            <div class="qs-collection-icon">📋</div>
+            <div class="qs-collection-name">전체</div>
+            <div class="qs-collection-check">✓</div>
+          </div>
+          <div class="qs-collection-item selected" onclick="selectQsCollection(this)">
+            <div class="qs-collection-icon">🍳</div>
+            <div class="qs-collection-name">레시피 모음</div>
+            <div class="qs-collection-check">✓</div>
+          </div>
+          <div class="qs-collection-item" onclick="selectQsCollection(this)">
+            <div class="qs-collection-icon">🏠</div>
+            <div class="qs-collection-name">인테리어</div>
+            <div class="qs-collection-check">✓</div>
+          </div>
+          <div class="qs-collection-item" onclick="selectQsCollection(this)">
+            <div class="qs-collection-icon">＋</div>
+            <div class="qs-collection-name" style="color:#6C63FF;">새 컬렉션 만들기</div>
+            <div class="qs-collection-check" style="border:none;"></div>
+          </div>
+        </div>
+
+        <div class="qs-section-label">컬러 태그 (선택)</div>
+        <div class="qs-color-tags">
+          <div class="qs-color-tag" style="background:#FF6347;" onclick="selectQsColor(this)"></div>
+          <div class="qs-color-tag selected" style="background:#FFB74D;" onclick="selectQsColor(this)"></div>
+          <div class="qs-color-tag" style="background:#FFEE58;" onclick="selectQsColor(this)"></div>
+          <div class="qs-color-tag" style="background:#66BB6A;" onclick="selectQsColor(this)"></div>
+          <div class="qs-color-tag" style="background:#42A5F5;" onclick="selectQsColor(this)"></div>
+          <div class="qs-color-tag" style="background:#7E57C2;" onclick="selectQsColor(this)"></div>
+          <div class="qs-color-tag" style="background:#EC407A;" onclick="selectQsColor(this)"></div>
+        </div>
+
+        <button class="qs-save-btn" onclick="doQuickSave()">저장하기</button>
+      </div>
+    </div>
+
+    <!-- Snackbar -->
+    <div class="snackbar" id="snackbar">
+      <span class="snackbar-text">✅ 저장 완료!</span>
+      <button class="snackbar-btn" onclick="goTo('screen-content'); hideSnackbar();">보러가기</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Navigation
+  function goTo(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+    closeQuickSaveForce();
+    hideSnackbar();
+  }
+
+  // Quick Save
+  function showQuickSave() {
+    document.getElementById('quickSaveOverlay').classList.add('active');
+  }
+  function closeQuickSave(e) {
+    if (e.target === e.currentTarget) {
+      document.getElementById('quickSaveOverlay').classList.remove('active');
+    }
+  }
+  function closeQuickSaveForce() {
+    document.getElementById('quickSaveOverlay').classList.remove('active');
+  }
+  function selectQsCollection(el) {
+    el.parentElement.querySelectorAll('.qs-collection-item').forEach(i => i.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+  function selectQsColor(el) {
+    el.parentElement.querySelectorAll('.qs-color-tag').forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+  function doQuickSave() {
+    closeQuickSaveForce();
+    const sb = document.getElementById('snackbar');
+    sb.classList.add('active');
+    setTimeout(() => { sb.classList.remove('active'); }, 3000);
+  }
+  function hideSnackbar() {
+    document.getElementById('snackbar').classList.remove('active');
+  }
+
+  // View Toggle
+  function switchView(type) {
+    const btns = document.querySelectorAll('.view-toggle-btn');
+    btns.forEach(b => b.classList.remove('active'));
+    if (type === 'album') {
+      btns[0].classList.add('active');
+      document.getElementById('album-view').style.display = 'grid';
+      document.getElementById('list-view').style.display = 'none';
+    } else {
+      btns[1].classList.add('active');
+      document.getElementById('album-view').style.display = 'none';
+      document.getElementById('list-view').style.display = 'flex';
+    }
+  }
+
+  // Color Tag
+  function selectColorTag(el) {
+    el.parentElement.querySelectorAll('.color-tag-item').forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  // Filter Chips
+  function toggleFilter(el) {
+    el.parentElement.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    handleSearch();
+  }
+
+  // Search
+  const sampleData = [
+    { title: '원팬 토마토 파스타', desc: '간단하게 만드는 원팬 파스타 레시피', platform: 'Instagram', icon: '🍝', bg: '#FFF3E0', time: '2시간 전' },
+    { title: '백종원 김치찌개', desc: '백종원의 요리비결 김치찌개 레시피', platform: 'YouTube', icon: '🥘', bg: '#FFF8E1', time: '5시간 전' },
+    { title: '다이어트 샐러드 레시피', desc: '건강하고 맛있는 샐러드 5가지', platform: 'Instagram', icon: '🥗', bg: '#E8F5E9', time: '1일 전' },
+    { title: '미니멀 인테리어 아이디어', desc: '작은 공간을 넓게 보이게 하는 팁', platform: 'Pinterest', icon: '🏠', bg: '#E3F2FD', time: '2일 전' },
+    { title: '2026 마케팅 트렌드', desc: 'AI 시대의 마케팅 전략 총정리', platform: 'Twitter', icon: '📊', bg: '#F3E5F5', time: '3일 전' },
+    { title: '봄 코디 추천', desc: '올 봄 트렌드 패션 스타일링', platform: 'Instagram', icon: '👗', bg: '#FCE4EC', time: '4일 전' },
+    { title: '제주도 맛집 리스트', desc: '현지인 추천 제주도 숨은 맛집', platform: 'YouTube', icon: '🏝', bg: '#E0F7FA', time: '5일 전' },
+    { title: '노오븐 치즈케이크', desc: '오븐 없이 만드는 간단 치즈케이크', platform: 'Pinterest', icon: '🍰', bg: '#FFF8E1', time: '1주 전' },
+  ];
+
+  function handleSearch() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const results = document.getElementById('searchResults');
+    const activeFilter = document.querySelector('.filter-chip.active').textContent.trim();
+
+    if (!query) {
+      results.innerHTML = '<div class="search-empty"><div class="empty-icon">🔍</div><div class="empty-text">검색어를 입력해주세요</div></div>';
+      return;
+    }
+
+    let filtered = sampleData.filter(d =>
+      d.title.toLowerCase().includes(query) || d.desc.toLowerCase().includes(query)
+    );
+
+    if (activeFilter !== '전체') {
+      const platMap = { '📷 Instagram': 'Instagram', '▶️ YouTube': 'YouTube', '🐦 Twitter': 'Twitter', '📌 Pinterest': 'Pinterest', '🎵 TikTok': 'TikTok' };
+      const platName = platMap[activeFilter];
+      if (platName) filtered = filtered.filter(d => d.platform === platName);
+    }
+
+    if (filtered.length === 0) {
+      results.innerHTML = '<div class="search-empty"><div class="empty-icon">😢</div><div class="empty-text">검색 결과가 없습니다</div></div>';
+      return;
+    }
+
+    results.innerHTML = filtered.map(d => `
+      <div class="list-item" onclick="goTo('screen-content')" style="margin-bottom:8px;">
+        <div class="list-thumb" style="background:${d.bg};">${d.icon}</div>
+        <div class="list-info">
+          <div class="list-title">${d.title}</div>
+          <div class="list-desc">${d.desc}</div>
+          <div class="list-meta-row">
+            <span class="list-platform">${d.platform}</span>
+            <span class="list-date">${d.time}</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // URL Validation
+  function validateUrl() {
+    const input = document.getElementById('urlInput');
+    const status = document.getElementById('urlStatus');
+    const val = input.value.trim();
+    if (!val) { status.innerHTML = ''; return; }
+    const urlPattern = /^https?:\/\/.+\..+/;
+    if (urlPattern.test(val)) {
+      status.className = 'url-status valid';
+      status.innerHTML = '✅ URL이 확인되었습니다';
+    } else {
+      status.className = 'url-status invalid';
+      status.innerHTML = '❌ 올바른 URL을 입력해주세요';
+    }
+  }
+
+  function pasteUrl() {
+    const input = document.getElementById('urlInput');
+    navigator.clipboard.readText().then(text => {
+      input.value = text;
+      validateUrl();
+    }).catch(() => {
+      input.value = 'https://www.instagram.com/p/example';
+      validateUrl();
+    });
+  }
+</script>
+
+</body>
+</html>
