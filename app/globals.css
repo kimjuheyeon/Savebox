@@ -44,6 +44,15 @@
   animation-name: zoomIn95;
 }
 
+/* hide scrollbar for chip row */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;

@@ -65,6 +65,7 @@ export default function App() {
 
   const handleSaveToCollection = (collection) => {
     setSavedCollection(collection);
+    setIsOpen(false); // close the sheet
     setStep('success');
   };
 
@@ -80,6 +81,7 @@ export default function App() {
     setCollections([newCollection, ...collections]);
     setSavedCollection(newCollection);
     setNewCollectionName('');
+    setIsOpen(false); // close the sheet
     setStep('success');
   };
 
@@ -98,35 +100,39 @@ export default function App() {
   };
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-black font-sans text-slate-900">
+    <div className="flex items-center justify-center w-full h-screen bg-neutral-900 font-sans text-slate-900">
 
-      {/* Background: SNS App Context */}
-      <div
-        className={`w-full h-full bg-cover bg-center transition-transform duration-500 ${isOpen ? 'scale-95 opacity-80 brightness-75' : 'scale-100'}`}
-        style={{
-          backgroundImage: 'url("https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=1000&auto=format&fit=crop")',
-          filter: isOpen ? 'blur(2px) brightness(0.7)' : 'none'
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/30 pointer-events-none" />
-      </div>
+      {/* Mobile Frame */}
+      <div className="relative w-[390px] h-[844px] overflow-hidden rounded-[40px] border-[6px] border-neutral-700 shadow-2xl">
 
-      {/* Reset Button */}
-      <button
-        onClick={handleReset}
-        className="absolute top-4 right-4 z-[60] flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur-sm text-white text-xs font-medium hover:bg-white/25 transition-colors"
-      >
-        <RotateCcw size={14} />
-        리셋
-      </button>
+        {/* Background: Threads Screenshot */}
+        <img
+          src="/Image/default-screen.png"
+          alt="threads background"
+          className="absolute inset-0 w-full h-full object-cover object-top"
+        />
 
-      {/* Share Extension Sheet (SaveBox) */}
-      <div
-        className={`fixed inset-x-0 bottom-0 z-50 transform transition-transform duration-300 ease-out ${
-          isOpen ? 'translate-y-0' : 'translate-y-full'
-        }`}
-      >
-        <div className="bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.3)] w-full max-w-md mx-auto overflow-hidden pb-8">
+        {/* Black Overlay - opacity 0.5 */}
+        <div
+          className={`absolute inset-0 bg-black transition-opacity duration-300 ${isOpen || step === 'success' ? 'opacity-50' : 'opacity-0'}`}
+        />
+
+        {/* Reset Button */}
+        <button
+          onClick={handleReset}
+          className="absolute top-8 right-6 z-[60] flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur-sm text-white text-xs font-medium hover:bg-white/25 transition-colors"
+        >
+          <RotateCcw size={14} />
+          리셋
+        </button>
+
+        {/* Share Extension Sheet (SaveBox) */}
+        <div
+          className={`absolute inset-x-0 bottom-0 z-50 transform transition-transform duration-300 ease-out ${
+            isOpen ? 'translate-y-0' : 'translate-y-full'
+          }`}
+        >
+          <div className="bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.3)] w-full overflow-hidden pb-8">
 
           {/* Header Indicator */}
           <div className="w-full flex justify-center pt-3 pb-1">
@@ -220,48 +226,42 @@ export default function App() {
               </div>
             )}
 
-            {/* VIEW STATE: S1-05 Success & Auto Return */}
-            {step === 'success' && (
-              <div className="h-full flex flex-col items-center justify-center py-6 animate-in zoom-in-95">
-                <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4 animate-bounce">
-                  <Check size={32} strokeWidth={3} />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-1">저장됨!</h3>
-                <p className="text-sm text-gray-500 mb-6 text-center">
-                  <span className="font-semibold text-indigo-600">{savedCollection?.name}</span>에<br/>
-                  성공적으로 저장되었습니다.
-                </p>
-
-                {/* Actions */}
-                <div className="flex gap-3 w-full mb-6">
-                  <button
-                    className="flex-1 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors"
-                    onClick={handleClose}
-                  >
-                    닫기
-                  </button>
-                  <button className="flex-1 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 shadow-md transition-colors">
-                    상세 보기
-                  </button>
-                </div>
-
-                {/* Auto Return Indicator */}
-                <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gray-400 rounded-full transition-all ease-linear"
-                    style={{ width: `${(timeLeft / 2000) * 100}%` }}
-                  />
-                </div>
-                <p className="text-xs text-gray-400 mt-2">
-                  {Math.ceil(timeLeft / 1000)}초 후 자동 복귀
-                </p>
-              </div>
-            )}
 
           </div>
         </div>
       </div>
 
+        {/* S1-05: Snackbar Toast */}
+        <div
+          className={`absolute inset-x-0 bottom-10 z-[70] px-4 transition-all duration-300 ease-out ${
+            step === 'success'
+              ? 'translate-y-0 opacity-100'
+              : 'translate-y-4 opacity-0 pointer-events-none'
+          }`}
+        >
+          <div
+            className="flex items-center justify-between px-4 py-3.5 rounded-2xl"
+            style={{
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+            }}
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shrink-0">
+                <Check size={12} strokeWidth={3} className="text-white" />
+              </div>
+              <span className="text-sm font-medium text-white">
+                &ldquo;{savedCollection?.name}&rdquo;에 저장됨
+              </span>
+            </div>
+            <button className="text-sm font-semibold text-indigo-400 hover:text-indigo-300 shrink-0 ml-3">
+              앱 열기
+            </button>
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }
