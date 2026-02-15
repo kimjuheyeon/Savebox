@@ -1,0 +1,27 @@
+{
+  "name": "savebox-prototype",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "dev:clean": "npm run clean && next dev --port 3000 --hostname 127.0.0.1",
+    "dev:fix": "npm run stop || true && npm run dev:clean",
+    "stop": "for p in 3000 3001 3002 3003; do lsof -tiTCP:$p -sTCP:LISTEN -nP; done | xargs -r kill",
+    "clean": "rm -rf .next",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "lucide-react": "^0.564.0",
+    "next": "14.2.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.4.17"
+  }
+}
