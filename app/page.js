@@ -1,13 +1,20 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Plus, Check, Hash, RotateCcw } from 'lucide-react';
+import { X, Plus, Check, RotateCcw } from 'lucide-react';
+
+// Mock: 공유로 들어온 콘텐츠 (이미지 있는 경우 / 없는 경우 전환 가능)
+const SHARED_CONTENT = {
+  title: '비트코인 소름 돋는 예언 하나 할게',
+  thumbnail: '/thumbnail/dd1994d5301ea079533443fdf481775d.jpg', // null 이면 이미지 없는 케이스
+  source: 'Threads',
+};
 
 const INITIAL_COLLECTIONS = [
-  { id: 'c1', name: 'UI 레퍼런스', color: 'bg-blue-100 text-blue-600' },
-  { id: 'c2', name: '개발 아티클', color: 'bg-green-100 text-green-600' },
-  { id: 'c3', name: '맛집 리스트', color: 'bg-orange-100 text-orange-600' },
-  { id: 'c4', name: '나중에 볼 영상', color: 'bg-purple-100 text-purple-600' },
+  { id: 'c1', name: 'UI 레퍼런스', thumbnail: '/thumbnail/2aca272e2362eaf5a34383381000c9a7.jpg' },
+  { id: 'c2', name: '개발 아티클', thumbnail: '/thumbnail/6912ebf347095999d3b8597ec1c0c887.jpg' },
+  { id: 'c3', name: '맛집 리스트', thumbnail: '/thumbnail/b1d0c3bfdcd04d80dd8fde350cdf2946.jpg' },
+  { id: 'c4', name: '나중에 볼 영상', thumbnail: '/thumbnail/d7316f9967030db54150c3bf12937544.jpg' },
 ];
 
 export default function App() {
@@ -157,6 +164,27 @@ export default function App() {
             </div>
           </div>
 
+          {/* S1-02: Content Preview Card */}
+          <div className="px-5 py-3">
+            <div className="flex items-center gap-3 px-3 py-3 rounded-xl" style={{ backgroundColor: '#F8F8F8' }}>
+              {SHARED_CONTENT.thumbnail ? (
+                <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0">
+                  <img src={SHARED_CONTENT.thumbnail} alt="" className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div className="w-12 h-12 rounded-lg shrink-0 bg-white flex items-center justify-center">
+                  <span className="text-lg font-bold text-gray-700">
+                    {SHARED_CONTENT.title.charAt(0)}
+                  </span>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">{SHARED_CONTENT.title}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{SHARED_CONTENT.source}에서 공유됨</p>
+              </div>
+            </div>
+          </div>
+
           {/* Main Body Area */}
           <div className="px-5 py-4 min-h-[280px]">
 
@@ -171,8 +199,8 @@ export default function App() {
                         onClick={() => handleSaveToCollection(col)}
                         className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors text-left"
                       >
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${col.color}`}>
-                          <Hash size={18} />
+                        <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-gray-200">
+                          <img src={col.thumbnail} alt={col.name} className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-semibold text-gray-800">{col.name}</p>
