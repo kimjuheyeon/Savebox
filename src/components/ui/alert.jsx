@@ -1,4 +1,4 @@
-import { cn } from '../../lib/utils';
+import { cn } from '@/lib/utils';
 
 const variantStyles = {
   default: 'bg-emerald-50 border-emerald-200',
@@ -10,7 +10,7 @@ export function Alert({ className, variant = 'default', ...props }) {
   return (
     <div
       className={cn(
-        'rounded-xl border px-4 py-3 text-sm',
+        'rounded-[8px] border px-4 py-3 text-sm',
         variantStyles[variant] || variantStyles.default,
         className,
       )}

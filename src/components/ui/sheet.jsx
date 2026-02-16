@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
-import { cn } from '../../lib/utils';
+import { cn } from '@/lib/utils';
 
 const SheetContext = createContext({
   open: false,
@@ -77,7 +77,7 @@ export function SheetContent({ className, side = 'bottom', portal = true, 'aria-
       ? 'left-0 top-0 h-full w-[88%] max-w-sm'
       : side === 'right'
         ? 'right-0 top-0 h-full w-[88%] max-w-sm'
-        : cn('left-0 right-0 bottom-0 w-full rounded-t-3xl', portal && 'max-w-[430px] mx-auto');
+        : cn('left-0 right-0 bottom-0 w-full rounded-t-[8px]', portal && 'max-w-[430px] mx-auto');
 
   const sheet = (
     <>

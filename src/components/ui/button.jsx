@@ -1,9 +1,9 @@
 import * as React from 'react';
 
-import { cn } from '../../lib/utils';
+import { cn } from '@/lib/utils';
 
 const base =
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none';
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[8px] text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none';
 
 const variantMap = {
   default: 'bg-sky-500 text-white hover:bg-sky-500/90',
@@ -14,8 +14,8 @@ const variantMap = {
 
 const sizeMap = {
   default: 'h-10 px-4 py-2',
-  sm: 'h-8 rounded-lg px-3 text-xs',
-  lg: 'h-11 rounded-xl px-6',
+  sm: 'h-8 rounded-[8px] px-3 text-xs',
+  lg: 'h-11 rounded-[8px] px-6',
 };
 
 export function Button({

@@ -1,7 +1,7 @@
-import { cn } from '../../lib/utils';
+import { cn } from '@/lib/utils';
 
 export function Card({ className, ...props }) {
-  return <div className={cn('rounded-2xl border border-slate-200 bg-white text-slate-950', className)} {...props} />;
+  return <div className={cn('rounded-[8px] border border-slate-200 bg-white text-slate-950', className)} {...props} />;
 }
 
 export function CardHeader({ className, ...props }) {
