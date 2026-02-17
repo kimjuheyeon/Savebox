@@ -179,7 +179,7 @@ export default function SearchPage() {
                     leading={
                       <div className="h-12 w-12 overflow-hidden rounded-[8px] bg-slate-100">
                         {item.thumbnail_url ? (
-                          <img src={item.thumbnail_url} alt="" className="h-full w-full object-cover" />
+                          <img src={item.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                         ) : (
                           <div className="grid h-full w-full place-items-center text-lg font-bold text-slate-500">
                             {item.title.charAt(0)}

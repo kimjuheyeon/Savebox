@@ -248,7 +248,7 @@ export default function ContentDetailPage({ params }) {
       <section className="mx-4 mt-4 overflow-hidden rounded-[8px] border border-white bg-white">
         <div className="aspect-[16/9] bg-slate-100">
           {content.thumbnail_url ? (
-            <img src={content.thumbnail_url} alt="" className="h-full w-full object-cover" />
+            <img src={content.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
           ) : (
             <div className="grid h-full w-full place-items-center bg-slate-200 text-5xl font-bold text-slate-600">
               {getInitial(safeTitle)}

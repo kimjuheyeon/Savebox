@@ -3,10 +3,10 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { LayoutGrid, List, MoreHorizontal, PencilLine, Search, Trash2, X } from 'lucide-react';
+import { LayoutGrid, Loader2, List, MoreHorizontal, PencilLine, Plus, Search, Trash2, X } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
-import { COLOR_TAGS, getSourceMeta, shortDate } from '@/lib/prototypeData';
-import { fetchContents, fetchCollections, deleteContent } from '@/lib/api';
+import { COLOR_TAGS, SNS_SOURCES, getSourceMeta, shortDate } from '@/lib/prototypeData';
+import { fetchContents, fetchCollections, createContent, deleteContent } from '@/lib/api';
 
 const SORT_OPTIONS = [
   { value: 'latest', label: '최신순' },
@@ -42,6 +42,16 @@ function ContentPageInner() {
   const [allContents, setAllContents] = useState([]);
   const [collections, setCollections] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [newUrl, setNewUrl] = useState('');
+  const [newSource, setNewSource] = useState('Other');
+  const [newMemo, setNewMemo] = useState('');
+  const [newThumbnail, setNewThumbnail] = useState('');
+  const [newCollectionId, setNewCollectionId] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [fetching, setFetching] = useState(false);
+  const fetchedUrlRef = useRef('');
 
   useEffect(() => {
     async function load() {
@@ -102,6 +112,71 @@ function ContentPageInner() {
       alert('삭제에 실패했습니다.');
     }
     setGridMenuId(null);
+  };
+
+  const resetCreateForm = () => {
+    setNewTitle('');
+    setNewUrl('');
+    setNewSource('Other');
+    setNewMemo('');
+    setNewThumbnail('');
+    setNewCollectionId('');
+    setShowCreate(false);
+    fetchedUrlRef.current = '';
+  };
+
+  const fetchOgMeta = async (url) => {
+    const trimmed = url.trim();
+    if (!trimmed || fetchedUrlRef.current === trimmed) return;
+    fetchedUrlRef.current = trimmed;
+    setFetching(true);
+    try {
+      const res = await fetch('/api/og-meta', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: trimmed }),
+      });
+      if (!res.ok) return;
+      const meta = await res.json();
+      if (meta.title && !newTitle) setNewTitle(meta.title);
+      if (meta.source) setNewSource(meta.source);
+      if (meta.thumbnailUrl) setNewThumbnail(meta.thumbnailUrl);
+      if (meta.url) setNewUrl(meta.url);
+    } catch {
+      // 실패해도 무시 — 사용자가 직접 입력 가능
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  const handleUrlPaste = (e) => {
+    const pasted = e.clipboardData?.getData('text') || '';
+    if (pasted.trim()) {
+      setTimeout(() => fetchOgMeta(pasted.trim()), 100);
+    }
+  };
+
+  const handleCreate = async () => {
+    const finalUrl = newUrl.trim();
+    if (!finalUrl) return;
+    const finalTitle = newTitle.trim() || finalUrl;
+    setCreating(true);
+    try {
+      const created = await createContent({
+        title: finalTitle,
+        url: finalUrl,
+        source: newSource,
+        memo: newMemo.trim() || null,
+        thumbnailUrl: newThumbnail || null,
+        collectionId: newCollectionId || null,
+      });
+      setAllContents((prev) => [created, ...prev]);
+      resetCreateForm();
+    } catch (err) {
+      alert('콘텐츠 추가에 실패했습니다.');
+    } finally {
+      setCreating(false);
+    }
   };
 
   const hasContents = items.length > 0;
@@ -222,7 +297,7 @@ function ContentPageInner() {
                 <Link href={`/content/${item.id}`}>
                   <div className="aspect-square bg-slate-100">
                     {item.thumbnail_url ? (
-                      <img src={item.thumbnail_url} alt="" className="h-full w-full object-cover" />
+                      <img src={item.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-3xl font-bold text-slate-500">
                         {title.charAt(0)}
@@ -286,6 +361,130 @@ function ContentPageInner() {
 
       {gridMenuId && (
         <div className="fixed inset-0 z-0" onClick={() => setGridMenuId(null)} />
+      )}
+
+      {/* FAB 콘텐츠 추가 버튼 */}
+      <button
+        type="button"
+        onClick={() => setShowCreate(true)}
+        className="fixed z-20 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg active:bg-indigo-700"
+        style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))', right: 'max(1rem, calc((100vw - 440px) / 2 + 1rem))' }}
+        aria-label="콘텐츠 추가"
+      >
+        <Plus size={24} />
+      </button>
+
+      {/* 콘텐츠 추가 바텀시트 */}
+      {showCreate && (
+        <>
+          <div onClick={resetCreateForm} className="fixed inset-0 z-30 bg-black/45" />
+          <div className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-[440px]">
+            <div
+              className="rounded-t-2xl border border-slate-200 bg-white p-4 shadow-2xl overflow-y-auto"
+              style={{ maxHeight: 'min(75vh, 75dvh)', paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <button onClick={resetCreateForm} className="rounded-[8px] p-2 text-slate-500">
+                  <X size={20} />
+                </button>
+                <h2 className="text-sm font-bold">콘텐츠 추가</h2>
+                <button
+                  onClick={handleCreate}
+                  disabled={!newUrl.trim() || creating || fetching}
+                  className="rounded-[8px] bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white disabled:bg-indigo-200"
+                >
+                  {creating ? '추가 중...' : '추가'}
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold text-slate-600">URL 붙여넣기</span>
+                  <div className="relative">
+                    <input
+                      value={newUrl}
+                      onChange={(e) => setNewUrl(e.target.value)}
+                      onPaste={handleUrlPaste}
+                      onBlur={() => newUrl.trim() && fetchOgMeta(newUrl)}
+                      placeholder="https://... 링크를 붙여넣으세요"
+                      type="url"
+                      autoFocus
+                      className="w-full rounded-[8px] border border-slate-300 px-3 py-2.5 text-sm pr-9"
+                    />
+                    {fetching && (
+                      <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-indigo-500" />
+                    )}
+                  </div>
+                </label>
+
+                {fetching && (
+                  <div className="rounded-[8px] bg-indigo-50 px-3 py-2 text-xs text-indigo-600">
+                    메타데이터를 가져오는 중...
+                  </div>
+                )}
+
+                {newThumbnail && (
+                  <div className="overflow-hidden rounded-[8px] border border-slate-200">
+                    <img src={newThumbnail} alt="미리보기" referrerPolicy="no-referrer" className="h-32 w-full object-cover" />
+                  </div>
+                )}
+
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold text-slate-600">
+                    콘텐츠 이름 <span className="font-normal text-slate-400">(비워두면 자동 설정)</span>
+                  </span>
+                  <input
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder={fetching ? '자동으로 가져오는 중...' : '자동 입력됨 (수정 가능)'}
+                    maxLength={80}
+                    className="w-full rounded-[8px] border border-slate-300 px-3 py-2 text-sm"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold text-slate-600">
+                    출처 <span className="font-normal text-slate-400">(자동 감지)</span>
+                  </span>
+                  <select
+                    value={newSource}
+                    onChange={(e) => setNewSource(e.target.value)}
+                    className="w-full rounded-[8px] border border-slate-300 px-3 py-2 text-sm"
+                  >
+                    {SNS_SOURCES.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold text-slate-600">컬렉션</span>
+                  <select
+                    value={newCollectionId}
+                    onChange={(e) => setNewCollectionId(e.target.value)}
+                    className="w-full rounded-[8px] border border-slate-300 px-3 py-2 text-sm"
+                  >
+                    <option value="">미분류</option>
+                    {collections.filter((c) => !c.is_system).map((col) => (
+                      <option key={col.id} value={col.id}>{col.name}</option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold text-slate-600">메모</span>
+                  <textarea
+                    value={newMemo}
+                    onChange={(e) => setNewMemo(e.target.value)}
+                    placeholder="메모를 입력하세요"
+                    maxLength={500}
+                    className="h-24 w-full resize-none rounded-[8px] border border-slate-300 px-3 py-2 text-sm"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+        </>
       )}
     </main>
   );
@@ -369,7 +568,7 @@ function SwipeableListItem({ item, onDelete }) {
       >
         <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-slate-100">
           {safeItem.thumbnail_url ? (
-            <img src={safeItem.thumbnail_url} alt="" className="h-full w-full object-cover" />
+            <img src={safeItem.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
           ) : (
             <div className="grid h-full w-full place-items-center text-lg font-bold text-slate-500">
               {title.charAt(0)}

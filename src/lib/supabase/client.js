@@ -1,20 +1,33 @@
 import { createBrowserClient } from '@supabase/ssr';
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+let _browserClient = null;
+
+function getEnv() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  return { url, key };
+}
 
 export function getSupabaseBrowserClient() {
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  const { url, key } = getEnv();
+  if (!url || !key) {
     throw new Error('NEXT_PUBLIC_SUPABASE_URL 또는 NEXT_PUBLIC_SUPABASE_ANON_KEY가 설정되지 않았습니다.');
   }
 
-  return createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  if (!_browserClient) {
+    _browserClient = createBrowserClient(url, key);
+  }
+  return _browserClient;
 }
 
 export function getSupabaseBrowserClientSafe() {
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  const { url, key } = getEnv();
+  if (!url || !key) {
     return null;
   }
 
-  return createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  if (!_browserClient) {
+    _browserClient = createBrowserClient(url, key);
+  }
+  return _browserClient;
 }
