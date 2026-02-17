@@ -44,6 +44,14 @@
   animation-name: zoomIn95;
 }
 
+/* safe-area utilities for notch/home-indicator devices */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.mb-safe {
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* hide scrollbar for chip row */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

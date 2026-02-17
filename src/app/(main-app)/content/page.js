@@ -1,25 +1,17 @@
 'use client';
 
-import { Suspense, useCallback, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LayoutGrid, List, MoreHorizontal, PencilLine, Search, Trash2, X } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
-import {
-  MOCK_COLLECTIONS,
-  MOCK_CONTENTS,
-  COLOR_TAGS,
-  getSourceMeta,
-  getContentsByCollection,
-  shortDate,
-  getRecentItems,
-} from '@/lib/prototypeData';
+import { COLOR_TAGS, getSourceMeta, shortDate } from '@/lib/prototypeData';
+import { fetchContents, fetchCollections, deleteContent } from '@/lib/api';
 
 const SORT_OPTIONS = [
   { value: 'latest', label: '최신순' },
   { value: 'oldest', label: '오래된순' },
   { value: 'name', label: '이름순' },
-  { value: 'lastViewed', label: '마지막 열람순' },
 ];
 
 export default function ContentPage() {
@@ -41,60 +33,88 @@ export default function ContentPage() {
 function ContentPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const collectionParam = searchParams.get('collection');
+  const collectionParam = searchParams?.get?.('collection') || null;
 
   const [viewMode, setViewMode] = useState('list');
   const [sort, setSort] = useState('latest');
   const [sourceFilter, setSourceFilter] = useState('전체');
-  const [deletedIds, setDeletedIds] = useState([]);
   const [gridMenuId, setGridMenuId] = useState(null);
+  const [allContents, setAllContents] = useState([]);
+  const [collections, setCollections] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const [contentsResult, cols] = await Promise.all([
+          fetchContents({ collectionId: collectionParam || undefined }),
+          fetchCollections(),
+        ]);
+        setAllContents(contentsResult.contents);
+        setCollections(cols);
+      } catch (err) {
+        console.error('Content page load error:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [collectionParam]);
 
   const activeCollection = useMemo(
-    () => MOCK_COLLECTIONS.find((c) => c.id === collectionParam),
-    [collectionParam],
+    () => collections.find((c) => c.id === collectionParam),
+    [collections, collectionParam],
   );
 
   const sourceFilters = useMemo(
-    () => ['전체', ...new Set(MOCK_CONTENTS.map((item) => item.source))],
-    [],
+    () => ['전체', ...new Set(allContents.map((item) => item.source).filter(Boolean))],
+    [allContents],
   );
 
   const items = useMemo(() => {
-    let list = collectionParam
-      ? getContentsByCollection(collectionParam)
-      : [...MOCK_CONTENTS];
-
-    list = list.filter((item) => !deletedIds.includes(item.id));
+    let list = [...allContents];
 
     if (sourceFilter !== '전체') {
       list = list.filter((item) => item.source === sourceFilter);
     }
 
     if (sort === 'latest') {
-      list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      list.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
     } else if (sort === 'oldest') {
-      list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      list.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
     } else if (sort === 'name') {
-      list.sort((a, b) => a.title.localeCompare(b.title, 'ko-KR'));
-    } else if (sort === 'lastViewed') {
-      list.sort((a, b) => new Date(b.lastViewedAt) - new Date(a.lastViewedAt));
+      list.sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ko-KR'));
     }
 
     return list;
-  }, [collectionParam, sourceFilter, sort, deletedIds]);
+  }, [allContents, sourceFilter, sort]);
 
   const clearCollectionFilter = () => {
     router.push('/content');
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!confirm('이 콘텐츠를 삭제하시겠습니까?')) return;
-    setDeletedIds((prev) => [...prev, id]);
+    try {
+      await deleteContent(id);
+      setAllContents((prev) => prev.filter((item) => item.id !== id));
+    } catch (err) {
+      alert('삭제에 실패했습니다.');
+    }
     setGridMenuId(null);
   };
 
   const hasContents = items.length > 0;
-  const recentItems = getRecentItems(7).length;
+
+  if (loading) {
+    return (
+      <main className="mx-auto w-full max-w-[440px] px-4 py-6">
+        <div className="animate-pulse rounded-2xl bg-white p-8 text-center text-sm text-slate-400">
+          불러오는 중...
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto w-full max-w-[440px]">
@@ -165,7 +185,7 @@ function ContentPageInner() {
       {activeCollection && (
         <div className="mb-3 mt-4 flex items-center gap-2 px-4">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700">
-            {activeCollection.icon} {activeCollection.name}
+            {activeCollection.name}
           </span>
           <button
             onClick={clearCollectionFilter}
@@ -179,7 +199,6 @@ function ContentPageInner() {
 
       <div className="mb-3 mt-4 flex items-center justify-between px-4 text-xs text-slate-500">
         <p>총 {items.length}개</p>
-        <p>최근 7일 {recentItems}개</p>
       </div>
 
       {!hasContents && (
@@ -191,24 +210,29 @@ function ContentPageInner() {
       {hasContents && viewMode === 'grid' && (
         <section className="grid grid-cols-2 gap-3 px-4">
           {items.map((item) => {
-            const color = COLOR_TAGS[item.colorTag];
-            const source = getSourceMeta(item.source);
+            const title = item.title || '제목 없음';
+            const sourceName = item.source || 'Other';
+            const source = getSourceMeta(sourceName);
+            const color = COLOR_TAGS[item.color_tag] || COLOR_TAGS.Gray;
             return (
-              <div key={item.id} className="relative overflow-hidden rounded-2xl border border-white bg-white shadow-sm">
+              <div
+                key={item.id}
+                className="relative overflow-hidden rounded-2xl border border-white bg-white shadow-sm"
+              >
                 <Link href={`/content/${item.id}`}>
                   <div className="aspect-square bg-slate-100">
-                    {item.thumbnailUrl ? (
-                      <img src={item.thumbnailUrl} alt="" className="h-full w-full object-cover" />
+                    {item.thumbnail_url ? (
+                      <img src={item.thumbnail_url} alt="" className="h-full w-full object-cover" />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-3xl font-bold text-slate-500">
-                        {item.title.charAt(0)}
+                        {title.charAt(0)}
                       </div>
                     )}
                   </div>
                   <div className="p-3">
-                    <p className="line-clamp-2 text-sm font-semibold text-slate-900">{item.title}</p>
+                    <p className="line-clamp-2 text-sm font-semibold text-slate-900">{title}</p>
                     <div className="mt-2 flex items-center justify-between">
-                      <p className={`rounded-full px-2 py-0.5 text-[10px] ${source.badge}`}>{item.source}</p>
+                      <p className={`rounded-full px-2 py-0.5 text-[10px] ${source.badge}`}>{sourceName}</p>
                       <span className={`ml-2 h-2.5 w-2.5 rounded-full ${color.dot}`} aria-hidden />
                     </div>
                   </div>
@@ -268,8 +292,11 @@ function ContentPageInner() {
 }
 
 function SwipeableListItem({ item, onDelete }) {
-  const source = getSourceMeta(item.source);
-  const color = COLOR_TAGS[item.colorTag];
+  const safeItem = item || {};
+  const title = safeItem.title || '제목 없음';
+  const sourceName = safeItem.source || 'Other';
+  const source = getSourceMeta(sourceName);
+  const color = COLOR_TAGS[safeItem.color_tag] || COLOR_TAGS.Gray;
   const containerRef = useRef(null);
   const startXRef = useRef(0);
   const currentXRef = useRef(0);
@@ -341,25 +368,25 @@ function SwipeableListItem({ item, onDelete }) {
         onTouchEnd={handleTouchEnd}
       >
         <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-slate-100">
-          {item.thumbnailUrl ? (
-            <img src={item.thumbnailUrl} alt="" className="h-full w-full object-cover" />
+          {safeItem.thumbnail_url ? (
+            <img src={safeItem.thumbnail_url} alt="" className="h-full w-full object-cover" />
           ) : (
             <div className="grid h-full w-full place-items-center text-lg font-bold text-slate-500">
-              {item.title.charAt(0)}
+              {title.charAt(0)}
             </div>
           )}
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="line-clamp-2 text-sm font-semibold text-slate-900">{item.title}</p>
+          <p className="line-clamp-2 text-sm font-semibold text-slate-900">{title}</p>
           <p className="mt-0.5 text-xs text-slate-500">
-            {item.source} · {shortDate(item.createdAt)}
+            {sourceName} · {shortDate(safeItem.created_at || new Date(0))}
           </p>
-          {item.memo && <p className="mt-1 line-clamp-1 text-xs text-slate-400">{item.memo}</p>}
+          {safeItem.memo && <p className="mt-1 line-clamp-1 text-xs text-slate-400">{safeItem.memo}</p>}
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          <span className={`rounded-full px-2 py-0.5 text-[10px] ${source.badge}`}>{item.source}</span>
+          <span className={`rounded-full px-2 py-0.5 text-[10px] ${source.badge}`}>{sourceName}</span>
           <span className={`h-2.5 w-2.5 rounded-full ${color.dot}`} aria-hidden />
         </div>
       </Link>

@@ -1,40 +1,46 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Check, FolderPlus, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import ListItem from '@/components/ListItem';
 import { ICON_BUTTON_BASE_CLASS, ICON_BUTTON_ICON_SIZE, ICON_BUTTON_SIZE_CLASS } from '@/lib/iconUI';
-import {
-  COLOR_TAGS,
-  MOCK_COLLECTIONS,
-  getCollectionCountMap,
-  getInitial,
-} from '@/lib/prototypeData';
+import { COLOR_TAGS } from '@/lib/prototypeData';
+import { fetchCollections, createCollection, deleteCollections } from '@/lib/api';
 
 const COLOR_CHOICES = ['Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Gray'];
 
 export default function CollectionsPage() {
-  const [collections, setCollections] = useState(MOCK_COLLECTIONS);
+  const [collections, setCollections] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [newName, setNewName] = useState('');
-  const [newIcon, setNewIcon] = useState('📁');
   const [newColor, setNewColor] = useState('Blue');
   const [creating, setCreating] = useState(false);
 
-  const counts = useMemo(() => getCollectionCountMap(), [collections]);
-  const userCollections = useMemo(() => collections.filter((c) => !c.isSystem), [collections]);
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await fetchCollections();
+        setCollections(data);
+      } catch (err) {
+        console.error('Collections load error:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
 
-  // Collections list item contract
-  // required: title
-  // optional: leading, href, subtitle, trailing
+  const userCollections = useMemo(() => collections.filter((c) => !c.is_system), [collections]);
+
   const listItems = useMemo(
     () =>
       collections.map((collection) => {
-        const isSystem = collection.isSystem;
-        const count = counts[collection.id] || 0;
-        const color = COLOR_TAGS[collection.colorTag];
+        const isSystem = collection.is_system;
+        const count = collection.item_count || 0;
+        const color = COLOR_TAGS[collection.color_tag] || COLOR_TAGS.Blue;
 
         return {
           id: collection.id,
@@ -65,7 +71,7 @@ export default function CollectionsPage() {
                 className={`grid h-12 w-12 place-items-center rounded-[8px] bg-slate-50 text-2xl ${isSystem ? 'grayscale' : ''}`}
                 aria-hidden
               >
-                {collection.icon}
+                📁
               </span>
             </div>
           ),
@@ -89,7 +95,7 @@ export default function CollectionsPage() {
           href: !editing ? `/content?collection=${collection.id}` : undefined,
         };
       }),
-    [collections, counts, editing, selectedIds],
+    [collections, editing, selectedIds],
   );
 
   const toggleEditing = () => {
@@ -97,49 +103,55 @@ export default function CollectionsPage() {
     setSelectedIds([]);
   };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     const trimmed = newName.trim();
     if (!trimmed || isDuplicate(trimmed)) return;
 
-    setCollections((prev) => [
-      {
-        id: `col-${Date.now()}`,
-        name: trimmed,
-        description: '컬렉션 설명 없음',
-        icon: newIcon,
-        colorTag: newColor,
-        isSystem: false,
-      },
-      ...prev,
-    ]);
-    setNewName('');
-    setNewIcon('📁');
-    setNewColor('Blue');
-    setCreating(false);
+    try {
+      const newCol = await createCollection({ name: trimmed, colorTag: newColor });
+      setCollections((prev) => [newCol, ...prev]);
+      setNewName('');
+      setNewColor('Blue');
+      setCreating(false);
+    } catch (err) {
+      alert('컬렉션 생성에 실패했습니다.');
+    }
   };
 
   const isDuplicate = (name) =>
     collections.some((col) => col.name.toLowerCase() === name.toLowerCase());
 
-  const handleDelete = () => {
-    const removable = new Set(selectedIds);
-    const next = collections.filter((collection) => !removable.has(collection.id) || collection.isSystem);
-    const skipped = selectedIds.filter((id) => collections.find((c) => c.id === id)?.isSystem);
-    const removed = selectedIds.filter((id) => !skipped.includes(id));
+  const handleDelete = async () => {
+    const removable = selectedIds.filter((id) => !collections.find((c) => c.id === id)?.is_system);
 
-    if (removed.length === 0) {
-      alert('시스템 컬렉션(모든 항목, 저장됨)은 삭제할 수 없습니다.');
+    if (removable.length === 0) {
+      alert('시스템 컬렉션은 삭제할 수 없습니다.');
       return;
     }
 
-    if (!confirm('선택한 컬렉션을 삭제할까요?\n\n포함된 콘텐츠는 \'저장됨\' 컬렉션으로 이동됩니다.')) {
+    if (!confirm('선택한 컬렉션을 삭제할까요?\n\n포함된 콘텐츠는 미분류 상태가 됩니다.')) {
       return;
     }
 
-    setCollections(next);
-    setSelectedIds([]);
-    setEditing(false);
+    try {
+      await deleteCollections(removable);
+      setCollections((prev) => prev.filter((c) => !removable.includes(c.id)));
+      setSelectedIds([]);
+      setEditing(false);
+    } catch (err) {
+      alert('삭제에 실패했습니다.');
+    }
   };
+
+  if (loading) {
+    return (
+      <main className="mx-auto w-full max-w-[440px] px-4 py-6">
+        <div className="animate-pulse rounded-2xl bg-white p-8 text-center text-sm text-slate-400">
+          불러오는 중...
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="relative mx-auto w-full max-w-[440px]">
@@ -208,7 +220,8 @@ export default function CollectionsPage() {
       {!editing && (
         <button
           onClick={() => setCreating((prev) => !prev)}
-          className="fixed right-4 bottom-20 z-30 inline-flex items-center gap-2 rounded-[8px] border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-semibold text-indigo-700 shadow-lg"
+          className="fixed right-4 z-30 inline-flex items-center gap-2 rounded-[8px] border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-semibold text-indigo-700 shadow-lg min-h-[48px]"
+          style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))' }}
         >
           <Pencil size={16} /> 새 컬렉션 만들기
         </button>
@@ -250,15 +263,6 @@ export default function CollectionsPage() {
                 );
               })}
             </div>
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-slate-700">아이콘 (이모지)</label>
-            <input
-              value={newIcon}
-              maxLength={2}
-              onChange={(e) => setNewIcon(e.target.value || getInitial('컬렉션'))}
-              className="w-full rounded-[8px] border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
-            />
           </div>
           <div className="flex gap-2">
             <button

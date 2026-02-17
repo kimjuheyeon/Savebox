@@ -1,19 +1,50 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Search } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import ListItem from '@/components/ListItem';
-import {
-  MOCK_COLLECTIONS,
-  getCollectionCountMap,
-  getInitial,
-  getRecentItems,
-} from '@/lib/prototypeData';
+import { getInitial } from '@/lib/prototypeData';
+import { fetchContents, fetchCollections } from '@/lib/api';
 import { ICON_BUTTON_BASE_CLASS, ICON_BUTTON_ICON_SIZE, ICON_BUTTON_SIZE_CLASS } from '@/lib/iconUI';
 
 export default function MainDashboardPage() {
-  const collections = getCollectionCountMap();
-  const recentItems = getRecentItems(7).slice(0, 8);
-  const topCollections = MOCK_COLLECTIONS.filter((col) => !col.isSystem).slice(0, 4);
+  const [recentItems, setRecentItems] = useState([]);
+  const [topCollections, setTopCollections] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const [contentsResult, collections] = await Promise.all([
+          fetchContents({ limit: 8 }),
+          fetchCollections(),
+        ]);
+        setRecentItems(contentsResult.contents);
+        setTopCollections(
+          collections
+            .filter((col) => !col.is_system)
+            .slice(0, 4),
+        );
+      } catch (err) {
+        console.error('Dashboard load error:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  if (loading) {
+    return (
+      <main className="mx-auto w-full max-w-[440px] min-h-screen px-4 py-10">
+        <div className="animate-pulse rounded-2xl bg-white p-8 text-center text-sm text-slate-400">
+          불러오는 중...
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto w-full max-w-[440px] min-h-screen">
@@ -51,8 +82,8 @@ export default function MainDashboardPage() {
               className="w-36 shrink-0 rounded-[8px] border border-white bg-white p-2.5 shadow-sm transition hover:shadow-md"
             >
               <div className="aspect-square overflow-hidden rounded-[8px] bg-slate-100">
-                {item.thumbnailUrl ? (
-                  <img src={item.thumbnailUrl} alt="" className="h-full w-full object-cover" />
+                {item.thumbnail_url ? (
+                  <img src={item.thumbnail_url} alt="" className="h-full w-full object-cover" />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-slate-500">
                     {getInitial(item.title)}
@@ -75,19 +106,24 @@ export default function MainDashboardPage() {
         </div>
 
         <div className="space-y-2">
+          {topCollections.length === 0 && (
+            <div className="rounded-[8px] border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
+              아직 컬렉션이 없어요
+            </div>
+          )}
           {topCollections.map((collection) => (
             <ListItem
               key={collection.id}
               href={`/content?collection=${collection.id}`}
               leading={
                 <div className="flex h-10 w-10 items-center justify-center rounded-[8px] bg-slate-100 text-lg">
-                  {collection.icon}
+                  📁
                 </div>
               }
               title={collection.name}
               subtitle={collection.description}
               trailing={
-                <p className="text-sm font-semibold text-slate-700">{collections[collection.id] || 0}개</p>
+                <p className="text-sm font-semibold text-slate-700">{collection.item_count || 0}개</p>
               }
             />
           ))}

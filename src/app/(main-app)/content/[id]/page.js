@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   CalendarDays,
-  ChevronDown,
   Share2,
   PencilLine,
   ExternalLink,
@@ -17,19 +16,15 @@ import {
 import PageHeader from '@/components/PageHeader';
 import { ICON_BUTTON_BASE_CLASS, ICON_BUTTON_ICON_SIZE, ICON_BUTTON_SIZE_CLASS } from '@/lib/iconUI';
 import ActionSnackbar from '@/components/ActionSnackbar';
-import {
-  MOCK_COLLECTIONS,
-  MOCK_CONTENTS,
-  COLOR_TAGS,
-  SNS_SOURCES,
-  getSourceMeta,
-  getInitial,
-  formatKoreanDate,
-} from '@/lib/prototypeData';
+import { COLOR_TAGS, SNS_SOURCES, getSourceMeta, getInitial, formatKoreanDate } from '@/lib/prototypeData';
+import { fetchContent, fetchCollections, updateContent, deleteContent } from '@/lib/api';
 
 export default function ContentDetailPage({ params }) {
   const router = useRouter();
-  const [content, setContent] = useState(() => MOCK_CONTENTS.find((item) => item.id === params.id));
+  const contentId = params?.id || '';
+  const [content, setContent] = useState(null);
+  const [collections, setCollections] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openEditor, setOpenEditor] = useState(false);
   const [draft, setDraft] = useState(null);
@@ -38,21 +33,31 @@ export default function ContentDetailPage({ params }) {
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const actionMenuRef = useRef(null);
 
-  const [memoInput, setMemoInput] = useState('');
-  
-
   useEffect(() => {
-    setMemoInput(content?.memo || '');
-    setDraft((prev) => (prev ? { ...prev, memo: content?.memo || '', collectionId: content?.collectionId || 'uncategorized' } : prev));
-  }, [content]);
+    async function load() {
+      try {
+        const [contentData, cols] = await Promise.all([
+          fetchContent(contentId),
+          fetchCollections(),
+        ]);
+        setContent(contentData);
+        setCollections(cols);
+      } catch (err) {
+        console.error('Content detail load error:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [contentId]);
 
   const draftIsDirty = useMemo(() => {
     if (!content || !draft) return false;
     return (
       draft.title !== content.title ||
       draft.source !== content.source ||
-      draft.memo !== content.memo ||
-      draft.collectionId !== content.collectionId
+      draft.memo !== (content.memo || '') ||
+      draft.collectionId !== (content.collection_id || '')
     );
   }, [content, draft]);
 
@@ -62,7 +67,7 @@ export default function ContentDetailPage({ params }) {
       title: content.title,
       source: content.source,
       memo: content.memo || '',
-      collectionId: content.collectionId,
+      collectionId: content.collection_id || '',
     });
   }, [content]);
 
@@ -83,6 +88,16 @@ export default function ContentDetailPage({ params }) {
     return () => window.removeEventListener('pointerdown', handleOutsideClick);
   }, [actionMenuOpen]);
 
+  if (loading) {
+    return (
+      <main className="mx-auto w-full max-w-[440px] px-4 py-10">
+        <div className="animate-pulse rounded-2xl bg-white p-8 text-center text-sm text-slate-400">
+          불러오는 중...
+        </div>
+      </main>
+    );
+  }
+
   if (!content) {
     return (
       <main className="mx-auto w-full max-w-[440px] px-4 py-10">
@@ -95,9 +110,11 @@ export default function ContentDetailPage({ params }) {
     );
   }
 
-  const sourceMeta = getSourceMeta(content.source);
-  const color = COLOR_TAGS[content.colorTag];
-  const linkedCollection = MOCK_COLLECTIONS.find((item) => item.id === content.collectionId);
+  const safeTitle = content.title || '제목 없음';
+  const safeSource = content.source || 'Other';
+  const sourceMeta = getSourceMeta(safeSource);
+  const color = COLOR_TAGS[content.color_tag] || COLOR_TAGS.Gray;
+  const linkedCollection = collections.find((item) => item.id === content.collection_id);
 
   const openEditorSheet = () => {
     setOpenEditor(true);
@@ -115,11 +132,7 @@ export default function ContentDetailPage({ params }) {
     const shareUrl = `${window.location.origin}/content/${content.id}`;
     try {
       if (navigator.share) {
-        await navigator.share({
-          title: content.title,
-          text: content.title,
-          url: shareUrl,
-        });
+        await navigator.share({ title: content.title, text: safeTitle, url: shareUrl });
       } else if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(shareUrl);
         setSnackbarMessage('링크가 복사되었습니다.');
@@ -137,7 +150,6 @@ export default function ContentDetailPage({ params }) {
       }
     } catch (error) {
       if (error?.name !== 'AbortError') {
-        console.error(error);
         setSnackbarMessage('공유를 할 수 없어요');
       }
     }
@@ -146,28 +158,33 @@ export default function ContentDetailPage({ params }) {
   const handleSave = async () => {
     if (!draft) return;
     setSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    setContent((prev) => ({
-      ...prev,
-      title: draft.title,
-      source: draft.source,
-      memo: draft.memo,
-      collectionId: draft.collectionId,
-    }));
-    setMemoInput(draft.memo);
-    setSnackbarMessage('저장됨');
-    setOpenEditor(false);
-    setSaving(false);
+    try {
+      const updated = await updateContent(content.id, {
+        title: draft.title,
+        source: draft.source,
+        memo: draft.memo,
+        collectionId: draft.collectionId || null,
+      });
+      setContent(updated);
+      setSnackbarMessage('저장됨');
+      setOpenEditor(false);
+    } catch (err) {
+      setSnackbarMessage('저장에 실패했습니다.');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!confirm('이 콘텐츠를 삭제하시겠습니까?')) return;
-    setDeleted(true);
-    setSnackbarMessage('삭제되었습니다.');
-    setTimeout(() => {
-      router.replace('/content');
-    }, 600);
+    try {
+      await deleteContent(content.id);
+      setDeleted(true);
+      setSnackbarMessage('삭제되었습니다.');
+      setTimeout(() => router.replace('/content'), 600);
+    } catch (err) {
+      setSnackbarMessage('삭제에 실패했습니다.');
+    }
   };
 
   return (
@@ -228,14 +245,13 @@ export default function ContentDetailPage({ params }) {
         }
       />
 
-
       <section className="mx-4 mt-4 overflow-hidden rounded-[8px] border border-white bg-white">
         <div className="aspect-[16/9] bg-slate-100">
-          {content.thumbnailUrl ? (
-            <img src={content.thumbnailUrl} alt="" className="h-full w-full object-cover" />
+          {content.thumbnail_url ? (
+            <img src={content.thumbnail_url} alt="" className="h-full w-full object-cover" />
           ) : (
             <div className="grid h-full w-full place-items-center bg-slate-200 text-5xl font-bold text-slate-600">
-              {getInitial(content.title)}
+              {getInitial(safeTitle)}
             </div>
           )}
         </div>
@@ -244,36 +260,32 @@ export default function ContentDetailPage({ params }) {
           <div>
             <p className={`inline-flex items-center gap-1 rounded-[8px] px-2.5 py-1 text-[11px] font-semibold ${sourceMeta.badge}`}>
               {sourceMeta.iconSrc ? (
-                <img
-                  src={sourceMeta.iconSrc}
-                  alt={`${content.source} 아이콘`}
-                  className="h-4 w-4 rounded-[4px] object-contain"
-                />
+                <img src={sourceMeta.iconSrc} alt={`${safeSource} 아이콘`} className="h-4 w-4 rounded-[4px] object-contain" />
               ) : (
                 <span className="inline-flex h-4 w-4 items-center justify-center rounded-[4px] text-[9px] font-bold">
-                  {content.source.charAt(0)}
+                  {safeSource.charAt(0)}
                 </span>
               )}
-              {content.source}
+              {safeSource}
             </p>
-            <h1 className="mt-2 text-2xl font-bold leading-snug text-slate-900">{content.title}</h1>
-            <p className="mt-2 text-sm text-slate-500">컬렉션 태그: {linkedCollection?.name || '저장됨'}</p>
+            <h1 className="mt-2 text-2xl font-bold leading-snug text-slate-900">{safeTitle}</h1>
+            <p className="mt-2 text-sm text-slate-500">컬렉션 태그: {linkedCollection?.name || '미분류'}</p>
             <p className={`mt-2 inline-flex items-center rounded-[8px] border px-2.5 py-1 text-xs ${color.badge}`}>
-              <span className={`mr-1 h-2 w-2 rounded-[8px] ${color.dot}`} /> {content.colorTag}
+              <span className={`mr-1 h-2 w-2 rounded-[8px] ${color.dot}`} /> {content.color_tag || 'Gray'}
             </p>
           </div>
 
           <div className="rounded-[8px] border border-slate-100 bg-slate-50 p-3">
             <p className="text-xs font-semibold text-slate-500">메모</p>
             <p className="mt-1 min-h-[48px] text-sm text-slate-700">
-              {memoInput ? memoInput : <span className="text-slate-400">메모를 추가하세요</span>}
+              {content.memo ? content.memo : <span className="text-slate-400">메모를 추가하세요</span>}
             </p>
           </div>
 
           <div className="flex items-center justify-between text-xs text-slate-500">
             <span className="inline-flex items-center gap-1">
               <CalendarDays size={14} />
-              저장일시: {formatKoreanDate(content.createdAt)}
+              저장일시: {content.created_at ? formatKoreanDate(content.created_at) : '-'}
             </span>
             <span className="inline-flex items-center gap-1">
               <span className={`h-2 w-2 rounded-[8px] ${sourceMeta.mark}`} />
@@ -283,7 +295,7 @@ export default function ContentDetailPage({ params }) {
 
           <div className="space-y-3">
             <Link
-              href={content.url}
+              href={content.url || '#'}
               target="_blank"
               className="flex w-full items-center justify-center gap-2 rounded-[8px] bg-indigo-600 px-4 py-3 font-semibold text-white"
             >
@@ -302,14 +314,16 @@ export default function ContentDetailPage({ params }) {
         message={snackbarMessage}
         actionLabel="목록으로 이동"
         actionHref="/content"
-        className="fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-30 mx-auto w-[calc(100%-2rem)] max-w-[440px]"
       />
 
       {openEditor && (
         <>
           <div onClick={closeEditor} className="fixed inset-0 z-30 bg-black/45" />
           <div className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-[440px]">
-            <div className="h-[70vh] rounded-t-[8px] border border-slate-200 bg-white p-4 shadow-2xl">
+            <div
+              className="rounded-t-2xl border border-slate-200 bg-white p-4 shadow-2xl overflow-y-auto"
+              style={{ height: 'min(70vh, 70dvh)', paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
+            >
               <div className="mb-4 flex items-center justify-between">
                 <button
                   onClick={closeEditor}
@@ -355,18 +369,13 @@ export default function ContentDetailPage({ params }) {
 
                 <label className="block">
                   <span className="mb-1 block text-xs font-semibold text-slate-600">저장할 컬렉션</span>
-                  <button className="inline-flex w-full items-center justify-between rounded-[8px] border border-slate-300 px-3 py-2 text-sm">
-                    <span>
-                      {MOCK_COLLECTIONS.find((item) => item.id === draft?.collectionId)?.name || '저장됨'}
-                    </span>
-                    <ChevronDown size={14} />
-                  </button>
                   <select
-                    value={draft?.collectionId || 'uncategorized'}
+                    value={draft?.collectionId || ''}
                     onChange={(event) => setDraft((prev) => ({ ...prev, collectionId: event.target.value }))}
-                    className="mt-2 w-full rounded-[8px] border border-slate-300 px-3 py-2 text-sm"
+                    className="w-full rounded-[8px] border border-slate-300 px-3 py-2 text-sm"
                   >
-                    {MOCK_COLLECTIONS.filter((c) => !c.isSystem || c.id === 'uncategorized').map((collection) => (
+                    <option value="">미분류</option>
+                    {collections.filter((c) => !c.is_system).map((collection) => (
                       <option key={collection.id} value={collection.id}>
                         {collection.name}
                       </option>

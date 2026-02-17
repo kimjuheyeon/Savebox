@@ -1,31 +1,47 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
 import { Search, X, Flame, Clock3 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import ListItem from '@/components/ListItem';
-import { MOCK_CONTENTS, formatKoreanDate } from '@/lib/prototypeData';
+import { formatKoreanDate } from '@/lib/prototypeData';
+import { fetchContents } from '@/lib/api';
 import { ICON_BUTTON_BASE_CLASS, ICON_BUTTON_ICON_SIZE, ICON_BUTTON_SIZE_CLASS } from '@/lib/iconUI';
 
 const POPULAR_SEARCHES = ['디자인 시스템', '파스타 레시피', '리액트 성능', '컬러 팔레트'];
 
 export default function SearchPage() {
   const [query, setQuery] = useState('');
-  const [recentSearches, setRecentSearches] = useState(['디자인 시스템', '파스타 레시피']);
+  const [recentSearches, setRecentSearches] = useState([]);
+  const [allContents, setAllContents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const result = await fetchContents({ limit: 100 });
+        setAllContents(result.contents);
+      } catch (err) {
+        console.error('Search load error:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
 
   const cleaned = query.trim();
   const results = useMemo(() => {
     if (!cleaned) return [];
     const lower = cleaned.toLowerCase();
-    return MOCK_CONTENTS.filter((item) => {
+    return allContents.filter((item) => {
       return (
         item.title.toLowerCase().includes(lower) ||
         (item.memo || '').toLowerCase().includes(lower) ||
         item.source.toLowerCase().includes(lower)
       );
     });
-  }, [cleaned]);
+  }, [cleaned, allContents]);
 
   const highlight = (text, term) => {
     if (!term) return text;
@@ -67,7 +83,7 @@ export default function SearchPage() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="검색어 입력 (제목/메모/출처)"
-              className="w-full rounded-[8px] border border-slate-200 py-2 pl-9 pr-9 text-sm focus:border-indigo-400 focus:outline-none"
+              className="w-full rounded-[8px] border border-slate-200 py-3 pl-9 pr-9 text-sm focus:border-indigo-400 focus:outline-none"
             />
             {!!query && (
               <button
@@ -90,34 +106,42 @@ export default function SearchPage() {
       </PageHeader>
 
       <div className="px-4 pt-4">
-        {cleaned.length === 0 && (
+        {loading && (
+          <div className="animate-pulse rounded-[8px] bg-white p-8 text-center text-sm text-slate-400">
+            불러오는 중...
+          </div>
+        )}
+
+        {!loading && cleaned.length === 0 && (
           <div className="space-y-4">
-            <div>
-              <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
-                <Clock3 size={16} />
-                최근 검색어
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {recentSearches.map((item) => (
-                  <button
-                    key={item}
-                    onClick={() => applySearch(item)}
-                    className="inline-flex items-center gap-2 rounded-[8px] border border-slate-200 px-3 py-1.5 text-xs"
-                  >
-                    <span>{item}</span>
-                    <span
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        removeRecent(item);
-                      }}
-                      className="text-slate-400 hover:text-slate-600"
+            {recentSearches.length > 0 && (
+              <div>
+                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                  <Clock3 size={16} />
+                  최근 검색어
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {recentSearches.map((item) => (
+                    <button
+                      key={item}
+                      onClick={() => applySearch(item)}
+                      className="inline-flex items-center gap-2 rounded-[8px] border border-slate-200 px-3 py-1.5 text-xs"
                     >
-                      <X size={12} />
-                    </span>
-                  </button>
-                ))}
+                      <span>{item}</span>
+                      <span
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          removeRecent(item);
+                        }}
+                        className="text-slate-400 hover:text-slate-600"
+                      >
+                        <X size={12} />
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <div>
               <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
@@ -139,7 +163,7 @@ export default function SearchPage() {
           </div>
         )}
 
-        {cleaned.length > 0 && (
+        {!loading && cleaned.length > 0 && (
           <section>
             <h2 className="mb-3 text-sm font-semibold text-slate-700">"{cleaned}" 검색 결과 {results.length}개</h2>
             {results.length === 0 ? (
@@ -154,8 +178,8 @@ export default function SearchPage() {
                     href={`/content/${item.id}`}
                     leading={
                       <div className="h-12 w-12 overflow-hidden rounded-[8px] bg-slate-100">
-                        {item.thumbnailUrl ? (
-                          <img src={item.thumbnailUrl} alt="" className="h-full w-full object-cover" />
+                        {item.thumbnail_url ? (
+                          <img src={item.thumbnail_url} alt="" className="h-full w-full object-cover" />
                         ) : (
                           <div className="grid h-full w-full place-items-center text-lg font-bold text-slate-500">
                             {item.title.charAt(0)}
@@ -166,7 +190,7 @@ export default function SearchPage() {
                     title={highlight(item.title, cleaned)}
                     subtitle={
                       <>
-                        {item.source} · {formatKoreanDate(item.createdAt)}
+                        {item.source} · {formatKoreanDate(item.created_at)}
                         {item.memo && (
                           <span className="mt-1 block text-xs text-slate-400">
                             {highlight(item.memo, cleaned)}
