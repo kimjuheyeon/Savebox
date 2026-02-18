@@ -82,7 +82,7 @@ export function SheetContent({ className, side = 'bottom', portal = true, 'aria-
   const sheet = (
     <>
       <div
-        className={cn(posClass, 'inset-0 z-40 bg-slate-950/45')}
+        className={cn(posClass, 'inset-0 z-40 bg-black/60')}
         aria-hidden="true"
         onClick={() => onOpenChange(false)}
       />
@@ -94,7 +94,7 @@ export function SheetContent({ className, side = 'bottom', portal = true, 'aria-
         tabIndex={-1}
         className={cn(
           posClass,
-          'z-50 bg-white text-slate-950 p-4 shadow-xl border border-slate-200',
+          'z-50 bg-[#1E1E1E] text-slate-100 p-4 shadow-xl border border-[#323232]',
           sideClass,
           'pb-[env(safe-area-inset-bottom)]',
           className,
@@ -114,11 +114,11 @@ export function SheetHeader({ className, ...props }) {
 }
 
 export function SheetTitle({ className, ...props }) {
-  return <h3 className={cn('text-base font-semibold', className)} {...props} />;
+  return <h3 className={cn('text-base font-semibold text-slate-100', className)} {...props} />;
 }
 
 export function SheetDescription({ className, ...props }) {
-  return <p className={cn('text-sm text-slate-500', className)} {...props} />;
+  return <p className={cn('text-sm text-[#777777]', className)} {...props} />;
 }
 
 export function SheetFooter({ className, ...props }) {

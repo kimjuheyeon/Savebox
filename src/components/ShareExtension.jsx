@@ -71,7 +71,7 @@ export default function ShareExtension() {
     const newCollection = {
       id: `c-${Date.now()}`,
       name: newCollectionName,
-      color: 'bg-gray-100 text-gray-800',
+      color: 'bg-[#1E1E1E] text-slate-100',
     };
     setCollections([newCollection, ...collections]);
     setSavedCollection(newCollection);
@@ -94,7 +94,7 @@ export default function ShareExtension() {
   };
 
   return (
-    <div className="relative w-full h-[100dvh] bg-neutral-900 font-sans text-slate-900 overflow-hidden">
+    <div className="relative w-full h-[100dvh] bg-neutral-900 font-sans text-slate-100 overflow-hidden">
       {/* Background: Threads Screenshot */}
       <img
         src="/Image/default-screen.png"
@@ -112,7 +112,7 @@ export default function ShareExtension() {
       {/* Reset Button */}
       <button
         onClick={handleReset}
-        className="absolute top-[max(2rem,env(safe-area-inset-top,2rem))] right-4 z-[60] flex items-center gap-1.5 px-3 py-2 rounded-[8px] bg-white/15 backdrop-blur-sm text-white text-xs font-medium hover:bg-white/25 transition-colors min-h-[44px]"
+        className="absolute top-[max(2rem,env(safe-area-inset-top,2rem))] right-4 z-[60] flex items-center gap-1.5 px-3 py-2 rounded-[8px] bg-[#1E1E1E]/70 backdrop-blur-sm text-white text-xs font-medium hover:bg-[#2a3347]/80 transition-colors min-h-[44px]"
       >
         <RotateCcw size={14} />
         리셋
@@ -125,29 +125,29 @@ export default function ShareExtension() {
         }`}
       >
         <div
-          className="bg-white rounded-t-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.3)] w-full overflow-hidden"
+          className="rounded-t-2xl bg-[#1E1E1E] shadow-[0_-10px_40px_rgba(0,0,0,0.35)] w-full overflow-hidden"
           style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
         >
           {/* Header Indicator */}
           <div className="w-full flex justify-center pt-3 pb-1">
-            <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+            <div className="w-12 h-1.5 rounded-full bg-[#2a3347]"></div>
           </div>
 
           {/* Header */}
-          <div className="px-5 pt-2 pb-3 border-b border-gray-100">
+          <div className="px-5 pt-2 pb-3 border-b border-[#323232]">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleClose}
-                  className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} -ml-1.5 text-gray-400 hover:text-gray-600 min-w-[44px] min-h-[44px]`}
+                  className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} -ml-1.5 text-[#777777] hover:text-[#ffffff]`}
                 >
                   <X size={ICON_BUTTON_ICON_SIZE} />
                 </button>
-                <h2 className="text-lg font-bold text-gray-900">컬렉션에 저장</h2>
+                <h2 className="text-lg font-bold text-slate-100">컬렉션에 저장</h2>
               </div>
               <button
                 onClick={() => setStep('create')}
-                className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors min-h-[44px] flex items-center px-2"
+                className="text-sm font-semibold text-indigo-300 hover:text-indigo-200 transition-colors min-h-[44px] flex items-center px-2"
               >
                 새 컬렉션
               </button>
@@ -156,21 +156,21 @@ export default function ShareExtension() {
 
           {/* S1-02: Content Preview Card */}
           <div className="px-5 py-3">
-            <div className="flex items-center gap-3 px-3 py-3 rounded-xl" style={{ backgroundColor: '#F8F8F8' }}>
+            <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-[#1E1E1E]">
               {SHARED_CONTENT.thumbnail ? (
                 <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0">
                   <img src={SHARED_CONTENT.thumbnail} alt="" className="w-full h-full object-cover" />
                 </div>
               ) : (
-                <div className="w-12 h-12 rounded-xl shrink-0 bg-white flex items-center justify-center">
-                  <span className="text-lg font-bold text-gray-700">
+                <div className="w-12 h-12 rounded-xl shrink-0 bg-[#212b42] flex items-center justify-center">
+                  <span className="text-lg font-bold text-[#777777]">
                     {SHARED_CONTENT.title.charAt(0)}
                   </span>
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{SHARED_CONTENT.title}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{SHARED_CONTENT.source}에서 공유됨</p>
+                <p className="text-sm font-medium text-slate-100 truncate">{SHARED_CONTENT.title}</p>
+                <p className="text-xs text-[#616161] mt-0.5">{SHARED_CONTENT.source}에서 공유됨</p>
               </div>
             </div>
           </div>
@@ -186,23 +186,23 @@ export default function ShareExtension() {
                       <button
                         key={col.id}
                         onClick={() => handleSaveToCollection(col)}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors text-left min-h-[56px]"
+                        className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#212b42] active:bg-[#283350] transition-colors text-left min-h-[56px]"
                       >
-                        <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-gray-200">
+                        <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-[#212b42]">
                           {col.thumbnail ? (
                             <img src={col.thumbnail} alt={col.name} className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-sm font-bold text-gray-500">
+                            <div className="w-full h-full flex items-center justify-center text-sm font-bold text-[#616161]">
                               {col.name.charAt(0)}
                             </div>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-gray-800 truncate">{col.name}</p>
-                          <p className="text-xs text-gray-500">12개 항목</p>
+                          <p className="text-sm font-semibold text-slate-100 truncate">{col.name}</p>
+                          <p className="text-xs text-[#616161]">12개 항목</p>
                         </div>
                         <div
-                          className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-xl text-gray-400 hover:bg-gray-100 hover:text-indigo-600 transition-colors min-w-[44px] min-h-[44px]`}
+                          className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-xl text-[#777777] hover:bg-[#212b42] hover:text-indigo-300 transition-colors`}
                         >
                           <Plus size={ICON_BUTTON_ICON_SIZE} />
                         </div>
@@ -219,18 +219,18 @@ export default function ShareExtension() {
                 <div className="mb-4">
                   <button
                     onClick={() => setStep('list')}
-                    className="text-xs text-gray-500 flex items-center gap-1 mb-4 hover:text-gray-800 min-h-[44px]"
+                    className="text-xs text-[#616161] flex items-center gap-1 mb-4 hover:text-[#ffffff] min-h-[44px]"
                   >
                     ← 뒤로가기
                   </button>
-                  <label className="text-sm font-semibold text-gray-800 block mb-2">
+                  <label className="text-sm font-semibold text-slate-100 block mb-2">
                     새 컬렉션 이름
                   </label>
                   <input
                     ref={inputRef}
                     type="text"
                     placeholder="예: 인테리어 아이디어"
-                    className="w-full p-4 text-base border-b-2 border-indigo-500 focus:outline-none bg-transparent placeholder:text-gray-300"
+                    className="w-full p-4 text-base border-b-2 border-indigo-500 focus:outline-none bg-transparent placeholder:text-[#616161]"
                     value={newCollectionName}
                     onChange={(e) => setNewCollectionName(e.target.value)}
                     onKeyDown={handleKeyDown}
@@ -241,8 +241,8 @@ export default function ShareExtension() {
                   disabled={!newCollectionName.trim()}
                   className={`w-full py-3.5 rounded-xl font-bold text-white transition-all transform active:scale-95 min-h-[48px] ${
                     newCollectionName.trim()
-                      ? 'bg-indigo-600 shadow-lg shadow-indigo-200'
-                      : 'bg-gray-300 cursor-not-allowed'
+                      ? 'bg-[#3385FF] shadow-lg shadow-indigo-200/30'
+                      : 'bg-[#2a3347] cursor-not-allowed'
                   }`}
                 >
                   완료 및 저장

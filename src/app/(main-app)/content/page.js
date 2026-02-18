@@ -7,6 +7,7 @@ import { LayoutGrid, Loader2, List, MoreHorizontal, PencilLine, Plus, Search, Tr
 import PageHeader from '@/components/PageHeader';
 import { SNS_SOURCES, getSourceMeta, shortDate } from '@/lib/prototypeData';
 import { Button } from '@/components/ui/button';
+import { ICON_BUTTON_BASE_CLASS, ICON_BUTTON_ICON_SIZE, ICON_BUTTON_SIZE_CLASS } from '@/lib/iconUI';
 import { fetchContents, fetchCollections, createContent, deleteContent } from '@/lib/api';
 
 const SORT_OPTIONS = [
@@ -20,7 +21,7 @@ export default function ContentPage() {
     <Suspense
       fallback={
         <main className="mx-auto w-full max-w-[440px] px-4 py-6">
-          <div className="animate-pulse rounded-2xl bg-white p-8 text-center text-sm text-slate-400">
+          <div className="animate-pulse rounded-2xl bg-[#1E1E1E] p-8 text-center text-sm text-[#616161]">
             불러오는 중...
           </div>
         </main>
@@ -139,7 +140,6 @@ function ContentPageInner() {
       });
       if (!res.ok) return;
       const meta = await res.json();
-      // og:description이 있고, og:title이 "@username on Platform" 패턴이면 description을 우선 사용
       const isGenericTitle = /^.{0,50}\(@[\w.]+\)\s+on\s+/i.test(meta.title || '');
       const betterTitle = (isGenericTitle && meta.description) ? meta.description.slice(0, 80) : meta.title;
       if (betterTitle && !newTitle) setNewTitle(betterTitle);
@@ -147,7 +147,6 @@ function ContentPageInner() {
       if (meta.thumbnailUrl) setNewThumbnail(meta.thumbnailUrl);
       if (meta.url) setNewUrl(meta.url);
     } catch {
-      // 실패해도 무시 — 사용자가 직접 입력 가능
     } finally {
       setFetching(false);
     }
@@ -188,7 +187,7 @@ function ContentPageInner() {
   if (loading) {
     return (
       <main className="mx-auto w-full max-w-[440px] px-4 py-6">
-        <div className="animate-pulse rounded-2xl bg-white p-8 text-center text-sm text-slate-400">
+        <div className="animate-pulse rounded-2xl bg-[#1E1E1E] p-8 text-center text-sm text-[#616161]">
           불러오는 중...
         </div>
       </main>
@@ -200,17 +199,20 @@ function ContentPageInner() {
       <PageHeader
         title="콘텐츠 목록"
         rightContent={
-          <Link href="/search" className="inline-flex items-center rounded-lg border border-slate-200 px-2 py-1.5 transition hover:bg-slate-50 active:bg-slate-100">
-            <Search size={16} />
+          <Link
+            href="/search"
+            className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-lg border border-[#323232] text-[#777777] transition hover:bg-[#212b42] active:bg-[#283350]`}
+          >
+            <Search size={ICON_BUTTON_ICON_SIZE} />
           </Link>
         }
       >
         <div className="mt-3 grid grid-cols-2 gap-2">
-          <div className="flex items-center rounded-xl border border-slate-200 bg-white">
+          <div className="flex items-center rounded-xl border border-[#323232] bg-[#1E1E1E]">
             <button
               onClick={() => setViewMode('grid')}
               className={`flex-1 rounded-l-xl px-3 py-2 text-xs font-semibold transition ${
-                viewMode === 'grid' ? 'bg-indigo-500 text-white active:bg-indigo-700' : 'text-slate-600 hover:bg-slate-50 active:bg-slate-100'
+                viewMode === 'grid' ? 'bg-[#3385FF] text-white active:bg-[#2669d9]' : 'text-[#777777] hover:bg-[#212b42] active:bg-[#283350]'
               }`}
             >
               <span className="inline-flex items-center justify-center gap-1">
@@ -221,7 +223,7 @@ function ContentPageInner() {
             <button
               onClick={() => setViewMode('list')}
               className={`flex-1 rounded-r-xl px-3 py-2 text-xs font-semibold transition ${
-                viewMode === 'list' ? 'bg-indigo-500 text-white active:bg-indigo-700' : 'text-slate-600 hover:bg-slate-50 active:bg-slate-100'
+                viewMode === 'list' ? 'bg-[#3385FF] text-white active:bg-[#2669d9]' : 'text-[#777777] hover:bg-[#212b42] active:bg-[#283350]'
               }`}
             >
               <span className="inline-flex items-center justify-center gap-1">
@@ -234,7 +236,7 @@ function ContentPageInner() {
           <select
             value={sort}
             onChange={(event) => setSort(event.target.value)}
-            className="rounded-xl border border-slate-200 bg-white px-2 text-xs text-slate-700"
+            className="rounded-xl border border-[#323232] bg-[#1E1E1E] px-2 text-xs text-[#777777]"
           >
             {SORT_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -251,8 +253,8 @@ function ContentPageInner() {
               onClick={() => setSourceFilter(source)}
               className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                 sourceFilter === source
-                  ? 'border-indigo-400 bg-indigo-50 text-indigo-700 active:bg-indigo-100'
-                  : 'border-slate-200 text-slate-600 hover:bg-slate-50 active:bg-slate-100'
+                  ? 'border-[#3385FF] bg-indigo-950/50 text-[#3385FF] active:bg-indigo-900'
+                  : 'border-[#323232] text-[#777777] hover:bg-[#212b42] active:bg-[#283350]'
               }`}
             >
               {source}
@@ -263,12 +265,12 @@ function ContentPageInner() {
 
       {activeCollection && (
         <div className="mb-3 mt-4 flex items-center gap-2 px-4">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#3385FF]/30 bg-indigo-950/50 px-3 py-1.5 text-xs font-semibold text-[#3385FF]">
             {activeCollection.name}
           </span>
           <button
             onClick={clearCollectionFilter}
-            className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 active:bg-slate-100"
+            className="inline-flex items-center gap-1 rounded-full border border-[#323232] px-2.5 py-1.5 text-xs font-semibold text-[#777777] transition hover:bg-[#212b42] active:bg-[#283350]"
           >
             <X size={12} />
             필터 해제
@@ -276,12 +278,12 @@ function ContentPageInner() {
         </div>
       )}
 
-      <div className="mb-3 mt-4 flex items-center justify-between px-4 text-xs text-slate-500">
+      <div className="mb-3 mt-4 flex items-center justify-between px-4 text-xs text-[#777777]">
         <p>총 {items.length}개</p>
       </div>
 
       {!hasContents && (
-        <section className="mx-4 rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
+        <section className="mx-4 rounded-2xl border border-dashed border-[#323232] bg-[#1E1E1E] p-8 text-center text-sm text-[#777777]">
           {activeCollection ? `'${activeCollection.name}' 컬렉션은 비어 있어요` : '저장된 콘텐츠가 없어요'}
         </section>
       )}
@@ -295,25 +297,25 @@ function ContentPageInner() {
             return (
               <div
                 key={item.id}
-                className="relative overflow-hidden rounded-2xl border border-white bg-white shadow-sm"
+                className="relative overflow-hidden rounded-2xl border border-[#323232] bg-[#1E1E1E] shadow-sm"
               >
                 <Link href={`/content/${item.id}`}>
-                  <div className="aspect-square bg-slate-100">
+                  <div className="aspect-square bg-[#1E1E1E]">
                     {item.thumbnail_url ? (
                       <img src={item.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                     ) : (
-                      <div className={`flex h-full w-full flex-col items-center justify-center gap-2 p-3 ${source.mark} bg-opacity-10`}>
+                      <div className={`flex h-full w-full flex-col items-center justify-center gap-2 p-3`}>
                         {source.iconSrc ? (
                           <img src={source.iconSrc} alt={sourceName} className="h-8 w-8 object-contain opacity-60" />
                         ) : (
-                          <span className="text-2xl font-black text-slate-400">{sourceName.charAt(0)}</span>
+                          <span className="text-2xl font-black text-[#616161]">{sourceName.charAt(0)}</span>
                         )}
-                        <p className="line-clamp-3 text-center text-xs font-medium text-slate-500">{title}</p>
+                        <p className="line-clamp-3 text-center text-xs font-medium text-[#777777]">{title}</p>
                       </div>
                     )}
                   </div>
                   <div className="p-3">
-                    <p className="line-clamp-2 text-sm font-semibold text-slate-900">{title}</p>
+                    <p className="line-clamp-2 text-sm font-semibold text-slate-100">{title}</p>
                     <div className="mt-2">
                       <p className={`inline-block rounded-full px-2 py-0.5 text-[10px] ${source.badge}`}>{sourceName}</p>
                     </div>
@@ -322,23 +324,23 @@ function ContentPageInner() {
                 <button
                   type="button"
                   onClick={() => setGridMenuId(gridMenuId === item.id ? null : item.id)}
-                  className="absolute right-2 top-2 z-[5] rounded-full bg-white/80 p-1.5 text-slate-600 shadow-sm backdrop-blur transition hover:bg-white active:bg-slate-100"
+                  className="absolute right-2 top-2 z-[5] rounded-full bg-black/60 p-1.5 text-[#777777] shadow-sm backdrop-blur transition hover:bg-black/80 active:bg-black/90"
                   aria-label="더보기"
                 >
                   <MoreHorizontal size={16} />
                 </button>
                 {gridMenuId === item.id && (
-                  <div className="absolute right-2 top-10 z-10 w-32 rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
+                  <div className="absolute right-2 top-10 z-10 w-32 rounded-xl border border-[#323232] bg-[#1E1E1E] py-1 shadow-lg">
                     <Link
                       href={`/content/${item.id}?edit=true`}
-                      className="flex w-full items-center gap-2 px-3 py-2 text-xs text-slate-700 transition hover:bg-slate-50 active:bg-slate-100"
+                      className="flex w-full items-center gap-2 px-3 py-2 text-xs text-[#777777] transition hover:bg-[#212b42] active:bg-[#283350]"
                     >
                       <PencilLine size={12} />
                       수정
                     </Link>
                     <button
                       onClick={() => handleDelete(item.id)}
-                      className="flex w-full items-center gap-2 px-3 py-2 text-xs text-rose-600 transition hover:bg-rose-50 active:bg-rose-100"
+                      className="flex w-full items-center gap-2 px-3 py-2 text-xs text-rose-400 transition hover:bg-rose-950/30 active:bg-rose-950/50"
                     >
                       <Trash2 size={12} />
                       삭제
@@ -367,11 +369,11 @@ function ContentPageInner() {
         <div className="fixed inset-0 z-0" onClick={() => setGridMenuId(null)} />
       )}
 
-      {/* FAB 콘텐츠 추가 버튼 */}
+      {/* FAB */}
       <button
         type="button"
         onClick={() => setShowCreate(true)}
-        className="fixed z-20 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg transition hover:bg-indigo-700 active:bg-indigo-800"
+        className="fixed z-20 flex h-14 w-14 items-center justify-center rounded-full bg-[#3385FF] text-white shadow-lg transition hover:bg-[#2f78f0] active:bg-[#2669d9]"
         style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))', right: 'max(1rem, calc((100vw - 440px) / 2 + 1rem))' }}
         aria-label="콘텐츠 추가"
       >
@@ -381,23 +383,26 @@ function ContentPageInner() {
       {/* 콘텐츠 추가 바텀시트 */}
       {showCreate && (
         <>
-          <div onClick={resetCreateForm} className="fixed inset-0 z-30 bg-black/45" />
+          <div onClick={resetCreateForm} className="fixed inset-0 z-30 bg-black/60" />
           <div className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-[440px]">
             <div
-              className="rounded-t-2xl border border-slate-200 bg-white p-4 shadow-2xl overflow-y-auto"
+              className="rounded-t-2xl border border-[#323232] bg-[#1E1E1E] p-4 shadow-2xl overflow-y-auto"
               style={{ maxHeight: 'min(75vh, 75dvh)', paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
             >
               <div className="mb-4 flex items-center justify-between">
-                <button onClick={resetCreateForm} className="rounded-[8px] p-2 text-slate-500 transition hover:bg-slate-100 active:bg-slate-200">
+                <button
+                  onClick={resetCreateForm}
+                  className="rounded-[8px] p-2 text-[#777777] transition hover:bg-[#1f2a42] active:bg-[#2a3652]"
+                >
                   <X size={20} />
                 </button>
-                <h2 className="text-sm font-bold">콘텐츠 추가</h2>
+                <h2 className="text-sm font-bold text-slate-100">콘텐츠 추가</h2>
                 <div className="w-9" />
               </div>
 
               <div className="space-y-3">
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-slate-600">URL 붙여넣기</span>
+                  <span className="mb-1 block text-xs font-semibold text-[#777777]">URL 붙여넣기</span>
                   <div className="relative">
                     <input
                       value={newUrl}
@@ -407,22 +412,22 @@ function ContentPageInner() {
                       placeholder="https://... 링크를 붙여넣으세요"
                       type="url"
                       autoFocus
-                      className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 pr-9"
+                      className="h-11 w-full rounded-xl border border-[#323232] bg-[#1E1E1E] px-3 text-sm text-slate-100 placeholder:text-[#616161] outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 pr-9"
                     />
                     {fetching && (
-                      <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-indigo-500" />
+                      <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-indigo-400" />
                     )}
                   </div>
                 </label>
 
                 {fetching && (
-                  <div className="rounded-xl bg-indigo-50 px-3 py-2 text-xs text-indigo-600">
+                  <div className="rounded-xl bg-indigo-950/50 px-3 py-2 text-xs text-indigo-300">
                     메타데이터를 가져오는 중...
                   </div>
                 )}
 
                 {newThumbnail && (
-                  <div className="overflow-hidden rounded-xl border border-slate-200">
+                  <div className="overflow-hidden rounded-xl border border-[#323232]">
                     <img
                       src={newThumbnail}
                       alt="미리보기"
@@ -434,27 +439,27 @@ function ContentPageInner() {
                 )}
 
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-slate-600">
-                    콘텐츠 이름 <span className="font-normal text-slate-400">(비워두면 자동 설정)</span>
+                  <span className="mb-1 block text-xs font-semibold text-[#777777]">
+                    콘텐츠 이름 <span className="font-normal text-[#616161]">(비워두면 자동 설정)</span>
                   </span>
                   <input
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
                     placeholder={fetching ? '자동으로 가져오는 중...' : '저장할 콘텐츠의 제목을 입력하세요'}
                     maxLength={80}
-                    className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200"
+                    className="h-11 w-full rounded-xl border border-[#323232] bg-[#1E1E1E] px-3 text-sm text-slate-100 placeholder:text-[#616161] outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30"
                   />
                 </label>
 
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-slate-600">
-                    출처 <span className="font-normal text-slate-400">(자동 감지)</span>
+                  <span className="mb-1 block text-xs font-semibold text-[#777777]">
+                    출처 <span className="font-normal text-[#616161]">(자동 감지)</span>
                   </span>
                   <select
                     value={newSource}
                     onChange={(e) => setNewSource(e.target.value)}
-                    className="h-11 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 pr-8 text-sm outline-none transition focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200"
-                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center' }}
+                    className="h-11 w-full appearance-none rounded-xl border border-[#323232] bg-[#1E1E1E] px-3 pr-8 text-sm text-slate-100 outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30"
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center' }}
                   >
                     {SNS_SOURCES.map((s) => (
                       <option key={s} value={s}>{s}</option>
@@ -463,12 +468,12 @@ function ContentPageInner() {
                 </label>
 
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-slate-600">컬렉션</span>
+                  <span className="mb-1 block text-xs font-semibold text-[#777777]">컬렉션</span>
                   <select
                     value={newCollectionId}
                     onChange={(e) => setNewCollectionId(e.target.value)}
-                    className="h-11 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 pr-8 text-sm outline-none transition focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200"
-                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center' }}
+                    className="h-11 w-full appearance-none rounded-xl border border-[#323232] bg-[#1E1E1E] px-3 pr-8 text-sm text-slate-100 outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30"
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center' }}
                   >
                     <option value="">미분류</option>
                     {collections.filter((c) => !c.is_system).map((col) => (
@@ -478,13 +483,13 @@ function ContentPageInner() {
                 </label>
 
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-slate-600">메모</span>
+                  <span className="mb-1 block text-xs font-semibold text-[#777777]">메모</span>
                   <textarea
                     value={newMemo}
                     onChange={(e) => setNewMemo(e.target.value)}
                     placeholder="메모를 입력하세요"
                     maxLength={500}
-                    className="h-24 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200"
+                    className="h-24 w-full resize-none rounded-xl border border-[#323232] bg-[#1E1E1E] px-3 py-2.5 text-sm text-slate-100 placeholder:text-[#616161] outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30"
                   />
                 </label>
               </div>
@@ -492,7 +497,7 @@ function ContentPageInner() {
               <Button
                 onClick={handleCreate}
                 disabled={!newUrl.trim() || creating || fetching}
-                className="mt-4 w-full bg-indigo-600 py-3 text-sm font-bold text-white hover:bg-indigo-700 active:bg-indigo-800 disabled:bg-indigo-200"
+                className="mt-4 w-full bg-[#3385FF] py-3 text-sm font-bold text-white hover:bg-[#2f78f0] active:bg-[#2669d9] disabled:bg-indigo-900 disabled:text-indigo-600"
               >
                 {creating ? '추가 중...' : '추가'}
               </Button>
@@ -548,11 +553,14 @@ function SwipeableListItem({ item, onDelete }) {
   };
 
   return (
-    <div ref={containerRef} className="relative overflow-hidden rounded-2xl">
+    <div
+      ref={containerRef}
+      className="relative overflow-hidden rounded-2xl border border-[#323232] bg-[#1E1E1E]"
+    >
       <div className="absolute inset-y-0 right-0 flex items-stretch">
         <Link
           href={`/content/${item.id}`}
-          className="flex w-[70px] items-center justify-center bg-indigo-500 text-white transition hover:bg-indigo-600 active:bg-indigo-700"
+          className="flex w-[70px] items-center justify-center bg-[#3385FF] text-white transition hover:bg-[#2f78f0] active:bg-[#2669d9]"
           onClick={closeActions}
         >
           <div className="flex flex-col items-center gap-1">
@@ -562,7 +570,7 @@ function SwipeableListItem({ item, onDelete }) {
         </Link>
         <button
           onClick={() => { onDelete(); closeActions(); }}
-          className="flex w-[70px] items-center justify-center bg-rose-500 text-white transition hover:bg-rose-600 active:bg-rose-700"
+          className="flex w-[70px] items-center justify-center bg-rose-600 text-white transition hover:bg-rose-500 active:bg-rose-400"
         >
           <div className="flex flex-col items-center gap-1">
             <Trash2 size={16} />
@@ -573,13 +581,13 @@ function SwipeableListItem({ item, onDelete }) {
 
       <Link
         href={`/content/${item.id}`}
-        className="relative flex items-start gap-3 border border-white bg-white p-3 transition-transform"
+        className="relative flex w-full items-start gap-3 bg-[#1E1E1E] p-3 transition-transform"
         style={{ transform: `translateX(-${offset}px)` }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-slate-100">
+        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-[#1E1E1E]">
           {safeItem.thumbnail_url ? (
             <img src={safeItem.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
           ) : (
@@ -587,24 +595,21 @@ function SwipeableListItem({ item, onDelete }) {
               {source.iconSrc ? (
                 <img src={source.iconSrc} alt={sourceName} className="h-6 w-6 object-contain opacity-60" />
               ) : (
-                <span className="text-lg font-black text-slate-400">{sourceName.charAt(0)}</span>
+                <span className="text-lg font-black text-[#616161]">{sourceName.charAt(0)}</span>
               )}
-              <p className="line-clamp-1 text-center text-[8px] font-medium text-slate-400">{title}</p>
+              <p className="line-clamp-1 text-center text-[8px] font-medium text-[#616161]">{title}</p>
             </div>
           )}
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="line-clamp-2 text-sm font-semibold text-slate-900">{title}</p>
-          <p className="mt-0.5 text-xs text-slate-500">
+          <p className="line-clamp-2 text-sm font-semibold text-slate-100">{title}</p>
+          <p className="mt-0.5 text-xs text-[#777777]">
             {sourceName} · {shortDate(safeItem.created_at || new Date(0))}
           </p>
-          {safeItem.memo && <p className="mt-1 line-clamp-1 text-xs text-slate-400">{safeItem.memo}</p>}
+          <p className="mt-1 line-clamp-1 text-xs text-[#616161]">{sourceName}</p>
         </div>
 
-        <div className="flex shrink-0 items-center">
-          <span className={`rounded-full px-2 py-0.5 text-[10px] ${source.badge}`}>{sourceName}</span>
-        </div>
       </Link>
     </div>
   );

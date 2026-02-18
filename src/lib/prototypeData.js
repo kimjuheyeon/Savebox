@@ -1,3 +1,6 @@
+const ICON_ASSET_REVISION = '2026-02-19';
+const withIconVersion = (fileName) => `/Image/${fileName}?v=${ICON_ASSET_REVISION}`;
+
 export const SNS_SOURCES = [
   'Instagram',
   'YouTube',
@@ -10,51 +13,51 @@ export const SNS_SOURCES = [
 
 export const SOURCE_META = {
   Instagram: {
-    badge: 'border border-pink-200 bg-pink-100 text-pink-700',
+    badge: 'border border-pink-500/40 bg-pink-500/20 text-pink-200',
     mark: 'bg-pink-500',
-    iconSrc: '/Image/instagram.png',
+    iconSrc: withIconVersion('instagram.png'),
   },
   YouTube: {
-    badge: 'border border-rose-200 bg-rose-100 text-rose-700',
+    badge: 'border border-rose-500/40 bg-rose-500/20 text-rose-200',
     mark: 'bg-rose-500',
-    iconSrc: '/Image/youtube.png',
+    iconSrc: withIconVersion('youtube.png'),
   },
   X: {
-    badge: 'border border-slate-300 bg-slate-100 text-slate-700',
+    badge: 'border border-slate-400/40 bg-slate-500/20 text-slate-100',
     mark: 'bg-slate-900',
-    iconSrc: '/Image/x.png',
+    iconSrc: withIconVersion('x.png'),
   },
   Pinterest: {
-    badge: 'border border-orange-200 bg-orange-100 text-orange-700',
+    badge: 'border border-orange-500/40 bg-orange-500/20 text-orange-100',
     mark: 'bg-orange-500',
-    iconSrc: '/Image/pinterest.png',
+    iconSrc: withIconVersion('pinterest.png'),
   },
   TikTok: {
-    badge: 'border border-slate-300 bg-slate-100 text-slate-800',
-    mark: 'bg-black',
-    iconSrc: '/Image/tiktok.png',
+    badge: 'border border-cyan-500/40 bg-cyan-500/20 text-cyan-100',
+    mark: 'bg-cyan-500',
+    iconSrc: withIconVersion('tiktok.png'),
   },
   Threads: {
-    badge: 'border border-cyan-200 bg-cyan-100 text-cyan-700',
+    badge: 'border border-cyan-500/40 bg-cyan-500/20 text-cyan-100',
     mark: 'bg-cyan-600',
-    iconSrc: '/Image/thread.png',
+    iconSrc: withIconVersion('thread.png'),
   },
   Other: {
-    badge: 'border border-gray-300 bg-gray-100 text-gray-700',
-    mark: 'bg-gray-500',
+    badge: 'border border-slate-400/40 bg-slate-500/20 text-[#ffffff]',
+    mark: 'bg-slate-400',
     iconSrc: null,
   },
 };
 
 export const COLOR_TAGS = {
-  Red: { label: 'Red', dot: 'bg-red-500', badge: 'border-red-200 text-red-700 bg-red-50' },
-  Orange: { label: 'Orange', dot: 'bg-orange-500', badge: 'border-orange-200 text-orange-700 bg-orange-50' },
-  Yellow: { label: 'Yellow', dot: 'bg-yellow-500', badge: 'border-yellow-200 text-yellow-700 bg-yellow-50' },
-  Green: { label: 'Green', dot: 'bg-green-500', badge: 'border-green-200 text-green-700 bg-green-50' },
-  Blue: { label: 'Blue', dot: 'bg-blue-500', badge: 'border-blue-200 text-blue-700 bg-blue-50' },
-  Purple: { label: 'Purple', dot: 'bg-purple-500', badge: 'border-purple-200 text-purple-700 bg-purple-50' },
-  Pink: { label: 'Pink', dot: 'bg-pink-500', badge: 'border-pink-200 text-pink-700 bg-pink-50' },
-  Gray: { label: 'Gray', dot: 'bg-slate-500', badge: 'border-slate-200 text-slate-700 bg-slate-100' },
+  Red: { label: 'Red', dot: 'bg-red-500', badge: 'border-red-500/40 text-red-200 bg-red-500/20' },
+  Orange: { label: 'Orange', dot: 'bg-orange-500', badge: 'border-orange-500/40 text-orange-200 bg-orange-500/20' },
+  Yellow: { label: 'Yellow', dot: 'bg-yellow-500', badge: 'border-yellow-500/40 text-yellow-200 bg-yellow-500/20' },
+  Green: { label: 'Green', dot: 'bg-green-500', badge: 'border-green-500/40 text-green-200 bg-green-500/20' },
+  Blue: { label: 'Blue', dot: 'bg-blue-500', badge: 'border-blue-500/40 text-blue-200 bg-blue-500/20' },
+  Purple: { label: 'Purple', dot: 'bg-purple-500', badge: 'border-purple-500/40 text-purple-200 bg-purple-500/20' },
+  Pink: { label: 'Pink', dot: 'bg-pink-500', badge: 'border-pink-500/40 text-pink-200 bg-pink-500/20' },
+  Gray: { label: 'Gray', dot: 'bg-slate-500', badge: 'border-slate-500/40 text-[#ffffff] bg-slate-500/20' },
 };
 
 const makeDate = (daysAgo, hour, minute) => {

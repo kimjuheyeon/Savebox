@@ -58,8 +58,8 @@ export default function CollectionsPage() {
                   }}
                   className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} shrink-0 rounded-[4px] border ${
                     selectedIds.includes(collection.id)
-                      ? 'bg-indigo-600 border-indigo-600 text-white'
-                      : 'border-slate-300 bg-white'
+                      ? 'bg-[#3385FF] border-[#3385FF] text-white'
+                      : 'border-[#323232] bg-[#1E1E1E]'
                   }`}
                   aria-label={`${collection.name} 선택`}
                 >
@@ -67,7 +67,7 @@ export default function CollectionsPage() {
                 </button>
               ) : null}
               <span
-                className={`grid h-12 w-12 place-items-center rounded-[8px] bg-slate-50 text-2xl ${isSystem ? 'grayscale' : ''}`}
+                className={`grid h-12 w-12 place-items-center rounded-[8px] bg-[#1E1E1E] text-2xl ${isSystem ? 'grayscale' : ''}`}
                 aria-hidden
               >
                 📁
@@ -78,7 +78,7 @@ export default function CollectionsPage() {
             <span className="flex items-center gap-2">
               {collection.name}
               {isSystem && (
-                <span className="rounded-[8px] border border-slate-300 px-2 py-0.5 text-[10px] text-slate-500">
+                <span className="rounded-[8px] border border-[#323232] px-2 py-0.5 text-[10px] text-[#777777]">
                   시스템
                 </span>
               )}
@@ -86,7 +86,7 @@ export default function CollectionsPage() {
           ),
           subtitle: collection.description,
           trailing: (
-            <p className="text-xs font-semibold text-slate-700">{count}개</p>
+            <p className="text-xs font-semibold text-[#777777]">{count}개</p>
           ),
           href: !editing ? `/content?collection=${collection.id}` : undefined,
         };
@@ -142,7 +142,7 @@ export default function CollectionsPage() {
   if (loading) {
     return (
       <main className="mx-auto w-full max-w-[440px] px-4 py-6">
-        <div className="animate-pulse rounded-2xl bg-white p-8 text-center text-sm text-slate-400">
+        <div className="animate-pulse rounded-2xl bg-[#1E1E1E] p-8 text-center text-sm text-[#616161]">
           불러오는 중...
         </div>
       </main>
@@ -158,11 +158,11 @@ export default function CollectionsPage() {
           <>
             <button
               onClick={toggleEditing}
-              className="rounded-[8px] border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 active:bg-slate-100"
+              className="rounded-[8px] border border-[#323232] px-3 py-1.5 text-xs font-semibold text-[#777777] transition hover:bg-[#212b42] active:bg-[#283350]"
             >
               {editing ? '완료' : '편집'}
             </button>
-            <button className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-[8px] border border-slate-200 text-slate-600 transition hover:bg-slate-50 active:bg-slate-100`}>
+            <button className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-[8px] border border-[#323232] text-[#777777] transition hover:bg-[#212b42] active:bg-[#283350]`}>
               <Search size={ICON_BUTTON_ICON_SIZE} />
             </button>
           </>
@@ -183,13 +183,13 @@ export default function CollectionsPage() {
       </section>
 
       {userCollections.length === 0 && !editing && !creating && (
-        <section className="mx-4 mt-4 rounded-[8px] border border-dashed border-slate-300 bg-white p-8 text-center">
-          <FolderPlus size={32} className="mx-auto mb-3 text-slate-400" />
-          <p className="text-sm font-semibold text-slate-700">아직 컬렉션이 없어요</p>
-          <p className="mt-1 text-xs text-slate-500">첫 컬렉션을 만들어 콘텐츠를 정리해 보세요.</p>
+        <section className="mx-4 mt-4 rounded-[8px] border border-dashed border-[#323232] bg-[#1E1E1E] p-8 text-center">
+          <FolderPlus size={32} className="mx-auto mb-3 text-[#616161]" />
+          <p className="text-sm font-semibold text-[#777777]">아직 컬렉션이 없어요</p>
+          <p className="mt-1 text-xs text-[#777777]">첫 컬렉션을 만들어 콘텐츠를 정리해 보세요.</p>
           <button
             onClick={() => setCreating(true)}
-            className="mt-4 inline-flex items-center gap-2 rounded-[8px] bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 active:bg-indigo-800"
+            className="mt-4 inline-flex items-center gap-2 rounded-[8px] bg-[#3385FF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#2f78f0] active:bg-[#2669d9]"
           >
             <Plus size={14} />
             첫 컬렉션 만들기
@@ -199,11 +199,11 @@ export default function CollectionsPage() {
 
       {editing && (
         <div className="mx-4 mt-4 flex items-center justify-between">
-          <p className="text-xs text-slate-500">체크한 컬렉션 {selectedIds.length}개</p>
+          <p className="text-xs text-[#777777]">체크한 컬렉션 {selectedIds.length}개</p>
           <button
             onClick={handleDelete}
             disabled={selectedIds.length === 0}
-            className="rounded-[8px] bg-rose-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-600 active:bg-rose-700 disabled:bg-rose-200 disabled:pointer-events-none"
+            className="rounded-[8px] bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-500 active:bg-rose-400 disabled:bg-rose-900 disabled:pointer-events-none"
           >
             <span className="inline-flex items-center gap-1">
               <Trash2 size={12} />
@@ -216,7 +216,7 @@ export default function CollectionsPage() {
       {!editing && (
         <button
           onClick={() => setCreating((prev) => !prev)}
-          className="fixed z-30 inline-flex items-center gap-2 rounded-[8px] border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-semibold text-indigo-700 shadow-lg min-h-[48px] transition hover:bg-indigo-100 active:bg-indigo-200"
+          className="fixed z-30 inline-flex items-center gap-2 rounded-[8px] border border-[#3385FF]/30 bg-indigo-950/80 px-4 py-3 text-sm font-semibold text-[#3385FF] shadow-lg min-h-[48px] transition hover:bg-indigo-900 active:bg-indigo-800"
           style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))', right: 'max(1rem, calc((100vw - 440px) / 2 + 1rem))' }}
         >
           <Pencil size={16} /> 새 컬렉션 만들기
@@ -225,41 +225,41 @@ export default function CollectionsPage() {
 
       {creating && (
         <>
-          <div onClick={() => { setCreating(false); setNewName(''); setNewColor('Blue'); }} className="fixed inset-0 z-30 bg-black/45" />
+          <div onClick={() => { setCreating(false); setNewName(''); setNewColor('Blue'); }} className="fixed inset-0 z-30 bg-black/60" />
           <div className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-[440px]">
             <div
-              className="rounded-t-2xl border border-slate-200 bg-white p-4 shadow-2xl"
+              className="rounded-t-2xl border border-[#323232] bg-[#1E1E1E] p-4 shadow-2xl"
               style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
             >
               <div className="mb-4 flex items-center justify-between">
                 <button
                   onClick={() => { setCreating(false); setNewName(''); setNewColor('Blue'); }}
-                  className="rounded-[8px] p-2 text-slate-500 transition hover:bg-slate-100 active:bg-slate-200"
+                  className="rounded-[8px] p-2 text-[#777777] transition hover:bg-[#1f2a42] active:bg-[#2a3652]"
                 >
                   <X size={20} />
                 </button>
-                <h2 className="text-sm font-bold">새 컬렉션 생성</h2>
+                <h2 className="text-sm font-bold text-slate-100">새 컬렉션 생성</h2>
                 <div className="w-9" />
               </div>
 
               <div className="space-y-3">
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-slate-600">컬렉션명 (최대 30자)</span>
+                  <span className="mb-1 block text-xs font-semibold text-[#777777]">컬렉션명 (최대 30자)</span>
                   <input
                     value={newName}
                     maxLength={30}
                     onChange={(e) => setNewName(e.target.value)}
                     placeholder="예: UI 영감"
                     autoFocus
-                    className="w-full rounded-[8px] border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
+                    className="w-full rounded-[8px] border border-[#323232] bg-[#1E1E1E] px-3 py-2.5 text-sm text-slate-100 placeholder:text-[#616161] outline-none focus:border-indigo-500"
                   />
                   {newName.trim() && isDuplicate(newName.trim()) && (
-                    <p className="mt-1 text-xs text-rose-600">이미 같은 이름의 컬렉션이 있습니다.</p>
+                    <p className="mt-1 text-xs text-rose-400">이미 같은 이름의 컬렉션이 있습니다.</p>
                   )}
                 </label>
 
                 <div>
-                  <p className="mb-2 text-xs font-semibold text-slate-600">컬러 태그</p>
+                  <p className="mb-2 text-xs font-semibold text-[#777777]">컬러 태그</p>
                   <div className="flex flex-wrap gap-2">
                     {COLOR_CHOICES.map((color) => {
                       const colorMeta = COLOR_TAGS[color];
@@ -270,7 +270,7 @@ export default function CollectionsPage() {
                           type="button"
                           onClick={() => setNewColor(color)}
                           className={`rounded-[8px] border px-3 py-1 text-xs font-semibold transition ${
-                            active ? 'border-indigo-400 text-indigo-700 active:bg-indigo-100' : 'border-slate-200 text-slate-600 hover:bg-slate-50 active:bg-slate-100'
+                            active ? 'border-[#3385FF] text-[#3385FF] active:bg-indigo-900' : 'border-[#323232] text-[#777777] hover:bg-[#212b42] active:bg-[#283350]'
                           } ${colorMeta.badge}`}
                         >
                           {color}
@@ -284,7 +284,7 @@ export default function CollectionsPage() {
               <Button
                 onClick={handleCreate}
                 disabled={!newName.trim() || isDuplicate(newName.trim())}
-                className="mt-4 w-full bg-indigo-600 py-3 text-sm font-bold text-white hover:bg-indigo-700 active:bg-indigo-800 disabled:bg-indigo-200"
+                className="mt-4 w-full bg-[#3385FF] py-3 text-sm font-bold text-white hover:bg-[#2f78f0] active:bg-[#2669d9] disabled:bg-indigo-900 disabled:text-indigo-600"
               >
                 생성
               </Button>

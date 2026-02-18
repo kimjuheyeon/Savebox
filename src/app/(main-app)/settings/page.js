@@ -27,7 +27,7 @@ const AVAILABLE_PROVIDERS = {
   google: {
     label: 'Google',
     badge: 'G',
-    chipClass: 'bg-[#ECF2FC] text-[#4A6FA5]',
+    chipClass: 'bg-[#1a2540] text-[#6d9fd6]',
   },
 };
 
@@ -129,7 +129,6 @@ export default function SettingsPage() {
         ]);
         setMemberSavedCount(contentsResult.total || 0);
         setMemberCollectionCount(collections.filter((c) => !c.is_system).length);
-        // 이번 달 저장 수는 total로 대체 (서버 필터링 미구현 시)
         setMemberSavedThisMonth(contentsResult.total || 0);
       } catch {}
     }
@@ -349,7 +348,7 @@ export default function SettingsPage() {
     }
   };
 
-  const [deleteAllStep, setDeleteAllStep] = useState(0); // 0: hidden, 1: first confirm, 2: final confirm
+  const [deleteAllStep, setDeleteAllStep] = useState(0);
 
   const handleDeleteAllContents = async () => {
     setIsBusy('delete-all');
@@ -369,7 +368,7 @@ export default function SettingsPage() {
   const accountRowsByState = () => {
     if (authState.type === 'guest') {
       const socialSignupRows = activeSocialProviders.map((provider) => {
-        const config = getProviderConfig(provider) || { label: provider, badge: provider[0]?.toUpperCase(), chipClass: 'bg-[#ECF2FC] text-[#4A6FA5]' };
+        const config = getProviderConfig(provider) || { label: provider, badge: provider[0]?.toUpperCase(), chipClass: 'bg-[#1a2540] text-[#6d9fd6]' };
 
         return (
           <button
@@ -377,13 +376,13 @@ export default function SettingsPage() {
             key={`signup-social-${provider}`}
             onClick={() => handleSocialSignIn(provider)}
             disabled={Boolean(isBusy)}
-            className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7] active:bg-[#E4E9F0] disabled:opacity-50 disabled:pointer-events-none"
+            className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#1f2a42] active:bg-[#2a3652] disabled:opacity-50 disabled:pointer-events-none"
           >
-            <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#1A2233]">
+            <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-100">
               <span className={`grid h-8 w-8 place-items-center rounded-[8px] ${config.chipClass}`}>{config.badge}</span>
               {config.label}로 시작하기
             </span>
-            <ChevronRight size={16} className="text-[#8896A8]" />
+            <ChevronRight size={16} className="text-[#616161]" />
           </button>
         );
       });
@@ -392,20 +391,20 @@ export default function SettingsPage() {
         <>
           <Link
             href="/auth/login"
-            className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7] active:bg-[#E4E9F0] disabled:opacity-50 disabled:pointer-events-none"
+            className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#1f2a42] active:bg-[#2a3652] disabled:opacity-50 disabled:pointer-events-none"
           >
-            <span className="text-sm font-semibold text-[#1A2233]">로그인</span>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#8896A8]">
+            <span className="text-sm font-semibold text-slate-100">로그인</span>
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#616161]">
               기존 계정 진입
               <ChevronRight size={16} />
             </span>
           </Link>
           <Link
             href="/auth"
-            className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7] active:bg-[#E4E9F0] disabled:opacity-50 disabled:pointer-events-none"
+            className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#1f2a42] active:bg-[#2a3652] disabled:opacity-50 disabled:pointer-events-none"
           >
-            <span className="text-sm font-semibold text-[#1A2233]">회원가입</span>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#8896A8]">
+            <span className="text-sm font-semibold text-slate-100">회원가입</span>
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#616161]">
               AUTH-01 이동
               <ChevronRight size={16} />
             </span>
@@ -419,15 +418,15 @@ export default function SettingsPage() {
       return (
         <>
           <div className="rounded-[8px] px-3 py-3">
-            <p className="text-sm font-semibold text-[#1A2233]">계정 정보</p>
-            <p className="mt-1 text-xs text-[#8896A8]">{authState.email}</p>
+            <p className="text-sm font-semibold text-slate-100">계정 정보</p>
+            <p className="mt-1 text-xs text-[#616161]">{authState.email}</p>
           </div>
           <Link
             href="/collections"
-            className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7] active:bg-[#E4E9F0] disabled:opacity-50 disabled:pointer-events-none"
+            className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#1f2a42] active:bg-[#2a3652] disabled:opacity-50 disabled:pointer-events-none"
           >
-            <span className="text-sm font-semibold text-[#1A2233]">저장 설정</span>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#8896A8]">
+            <span className="text-sm font-semibold text-slate-100">저장 설정</span>
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#616161]">
               기본 컬렉션
               <ChevronRight size={16} />
             </span>
@@ -439,23 +438,23 @@ export default function SettingsPage() {
     return (
       <>
         <div className="rounded-[8px] px-3 py-3">
-          <p className="text-sm font-semibold text-[#1A2233]">계정 정보</p>
-          <p className="mt-1 text-xs text-[#8896A8]">{authState.email}</p>
+          <p className="text-sm font-semibold text-slate-100">계정 정보</p>
+          <p className="mt-1 text-xs text-[#616161]">{authState.email}</p>
         </div>
         <div className="rounded-[8px] px-3 py-3">
-          <p className="text-sm font-semibold text-[#1A2233]">이메일 변경</p>
-          <p className="mt-1 text-xs text-[#8896A8]">현재 화면은 데모 플로우입니다.</p>
+          <p className="text-sm font-semibold text-slate-100">이메일 변경</p>
+          <p className="mt-1 text-xs text-[#616161]">현재 화면은 데모 플로우입니다.</p>
         </div>
         <div className="rounded-[8px] px-3 py-3">
-          <p className="text-sm font-semibold text-[#1A2233]">비밀번호 변경</p>
-          <p className="mt-1 text-xs text-[#8896A8]">현재 화면은 데모 플로우입니다.</p>
+          <p className="text-sm font-semibold text-slate-100">비밀번호 변경</p>
+          <p className="mt-1 text-xs text-[#616161]">현재 화면은 데모 플로우입니다.</p>
         </div>
         <Link
           href="/collections"
-          className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7] active:bg-[#E4E9F0] disabled:opacity-50 disabled:pointer-events-none"
+          className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#1f2a42] active:bg-[#2a3652] disabled:opacity-50 disabled:pointer-events-none"
         >
-          <span className="text-sm font-semibold text-[#1A2233]">저장 설정</span>
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#8896A8]">
+          <span className="text-sm font-semibold text-slate-100">저장 설정</span>
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#616161]">
             기본 컬렉션
             <ChevronRight size={16} />
           </span>
@@ -474,19 +473,19 @@ export default function SettingsPage() {
         return (
           <div key={provider} className="flex items-center justify-between rounded-[8px] px-3 py-3">
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-[#1A2233]">{label}</p>
-              <p className="mt-1 text-xs text-[#8896A8]">
+              <p className="text-sm font-semibold text-slate-100">{label}</p>
+              <p className="mt-1 text-xs text-[#616161]">
                 {connected ? `${label} 연동됨${isCurrent ? ' (현재 계정)' : ''}` : '연동되지 않음'}
               </p>
             </div>
             {connected ? (
-              <span className="rounded-[8px] bg-[#F0F2F7] px-2 py-1 text-xs font-semibold text-[#8896A8]">연결됨</span>
+              <span className="rounded-[8px] bg-[#1E1E1E] px-2 py-1 text-xs font-semibold text-[#616161]">연결됨</span>
             ) : (
               <button
                 type="button"
                 onClick={() => handleSocialLink(provider)}
                 disabled={Boolean(isBusy)}
-                className="rounded-[8px] border border-[#E4E9F0] px-2 py-1 text-xs font-semibold text-[#4A6FA5] transition hover:bg-[#ECF2FC] active:bg-[#D9E4F5] disabled:opacity-50 disabled:pointer-events-none"
+                className="rounded-[8px] border border-[#323232] px-2 py-1 text-xs font-semibold text-[#6d9fd6] transition hover:bg-[#1a2540] active:bg-[#243050] disabled:opacity-50 disabled:pointer-events-none"
               >
                 연동하기
               </button>
@@ -498,30 +497,30 @@ export default function SettingsPage() {
   );
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-[440px] bg-[#F0F2F7] pb-10">
+    <main className="mx-auto min-h-screen w-full max-w-[440px] bg-[#101010] pb-10">
       <PageHeader title="설정" />
 
       {isAuthLoading ? (
-        <section className="px-4 py-4 text-sm text-[#8896A8]">사용자 상태를 불러오는 중...</section>
+        <section className="px-4 py-4 text-sm text-[#616161]">사용자 상태를 불러오는 중...</section>
       ) : (
         <>
           <section className="px-4 pt-4">
-            <div className="rounded-[14px] border border-[#E4E9F0] bg-[#FFFFFF] p-4 shadow-sm">
+            <div className="rounded-[14px] border border-[#323232] bg-[#1E1E1E] p-4 shadow-sm">
               {authState.type === 'guest' ? (
                 <>
-                  <div className="mb-3 inline-flex items-center gap-2 rounded-[8px] bg-[#ECF2FA] px-2 py-1 text-xs font-semibold text-[#4A6FA5]">
+                  <div className="mb-3 inline-flex items-center gap-2 rounded-[8px] bg-[#1a2540] px-2 py-1 text-xs font-semibold text-[#6d9fd6]">
                     <Sparkles size={14} />
                     게스트
                   </div>
-                  <p className="text-sm font-bold text-[#1A2233]">현재 {guestSavedCount} / {STORAGE_LIMIT}개 저장</p>
-                  <div className="mt-2 h-2 w-full overflow-hidden rounded-[999px] bg-[#E4E9F0]">
+                  <p className="text-sm font-bold text-slate-100">현재 {guestSavedCount} / {STORAGE_LIMIT}개 저장</p>
+                  <div className="mt-2 h-2 w-full overflow-hidden rounded-[999px] bg-[#1E1E1E]">
                     <div
-                      className="h-full rounded-[999px] bg-[#4A6FA5] transition-all duration-200"
+                      className="h-full rounded-[999px] bg-[#6d9fd6] transition-all duration-200"
                       style={{ width: `${Math.floor(guestUsageRatio * 100)}%` }}
                     />
                   </div>
                   {showGuestWarning ? (
-                    <p className="mt-2 text-xs text-[#8896A8]">
+                    <p className="mt-2 text-xs text-[#616161]">
                       한도까지 {guestRemaining}개 남았어요. 가입하면 무제한 저장!
                     </p>
                   ) : null}
@@ -529,35 +528,35 @@ export default function SettingsPage() {
               ) : authState.type === 'social' ? (
                 <>
                   <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <span className="rounded-[8px] bg-[#4A6FA5] px-2 py-1 text-[11px] font-semibold text-white">
+                    <span className="rounded-[8px] bg-[#6d9fd6] px-2 py-1 text-[11px] font-semibold text-white">
                       {PROVIDER_BADGE[authState.provider]}
                     </span>
-                    <span className="rounded-[8px] border border-[#4A6FA5]/30 px-2 py-1 text-[11px] font-semibold text-[#4A6FA5]">
+                    <span className="rounded-[8px] border border-[#6d9fd6]/30 px-2 py-1 text-[11px] font-semibold text-[#6d9fd6]">
                       정회원
                     </span>
                   </div>
-                  <p className="text-sm font-bold text-[#1A2233]">{authState.email}</p>
-                  <p className="mt-1 text-xs text-[#8896A8]">연동된 제공자로 로그인됨</p>
+                  <p className="text-sm font-bold text-slate-100">{authState.email}</p>
+                  <p className="mt-1 text-xs text-[#616161]">연동된 제공자로 로그인됨</p>
                 </>
               ) : (
                 <>
                   <div className="mb-2 flex items-center gap-3">
-                    <div className="grid h-10 w-10 place-items-center rounded-[8px] bg-[#4A6FA5] text-sm font-bold text-white">
+                    <div className="grid h-10 w-10 place-items-center rounded-[8px] bg-[#6d9fd6] text-sm font-bold text-white">
                       {authState.email?.trim()?.[0]?.toUpperCase() || 'M'}
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-[#1A2233]">{authState.email}</p>
+                      <p className="text-sm font-bold text-slate-100">{authState.email}</p>
                       <div className="mt-1 flex flex-wrap items-center gap-2">
-                        <span className="rounded-[8px] border border-[#4A6FA5]/30 px-2 py-1 text-[11px] font-semibold text-[#4A6FA5]">
+                        <span className="rounded-[8px] border border-[#6d9fd6]/30 px-2 py-1 text-[11px] font-semibold text-[#6d9fd6]">
                           정회원
                         </span>
-                        <span className="rounded-[8px] border border-[#4A6FA5]/30 px-2 py-1 text-[11px] font-semibold text-[#4A6FA5]">
+                        <span className="rounded-[8px] border border-[#6d9fd6]/30 px-2 py-1 text-[11px] font-semibold text-[#6d9fd6]">
                           오픈 베타
                         </span>
                       </div>
                     </div>
                   </div>
-                  <p className="rounded-[8px] bg-[#F6F9FF] p-3 text-xs text-[#8896A8]">
+                  <p className="rounded-[8px] bg-[#1E1E1E] p-3 text-xs text-[#616161]">
                     저장됨 {memberSavedCount}개 / 컬렉션 {memberCollectionCount}개 / 이번 달 {memberSavedThisMonth}개
                   </p>
                 </>
@@ -566,31 +565,31 @@ export default function SettingsPage() {
           </section>
 
           <section className="mb-4 px-4 pt-4">
-            <h2 className="mb-2 px-2 text-xs font-semibold text-[#8896A8]">계정</h2>
-            <div className="overflow-hidden rounded-[14px] border border-[#E4E9F0] bg-white">
+            <h2 className="mb-2 px-2 text-xs font-semibold text-[#616161]">계정</h2>
+            <div className="overflow-hidden rounded-[14px] border border-[#323232] bg-[#1E1E1E]">
               <div className="space-y-1 p-1">{accountRowsByState()}</div>
             </div>
           </section>
 
           {authState.type !== 'guest' ? (
             <section className="mb-4 px-4">
-              <h2 className="mb-2 px-2 text-xs font-semibold text-[#8896A8]">소셜 연동 관리</h2>
-              <div className="overflow-hidden rounded-[14px] border border-[#E4E9F0] bg-white">
+              <h2 className="mb-2 px-2 text-xs font-semibold text-[#616161]">소셜 연동 관리</h2>
+              <div className="overflow-hidden rounded-[14px] border border-[#323232] bg-[#1E1E1E]">
                 <div className="space-y-1 p-1">{socialRows}</div>
               </div>
             </section>
           ) : null}
 
           <section className="mb-4 px-4">
-            <h2 className="mb-2 px-2 text-xs font-semibold text-[#8896A8]">앱 정보</h2>
-            <div className="overflow-hidden rounded-[14px] border border-[#E4E9F7] bg-white">
+            <h2 className="mb-2 px-2 text-xs font-semibold text-[#616161]">앱 정보</h2>
+            <div className="overflow-hidden rounded-[14px] border border-[#323232] bg-[#1E1E1E]">
               <div className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left">
-                <span className="text-sm font-semibold text-[#1A2233]">버전</span>
-                <span className="text-xs font-semibold text-[#8896A8]">SaveBox v1.0.3</span>
+                <span className="text-sm font-semibold text-slate-100">버전</span>
+                <span className="text-xs font-semibold text-[#616161]">SaveBox v1.0.3</span>
               </div>
               <div className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left">
-                <span className="text-sm font-semibold text-[#1A2233]">이용약관</span>
-                <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#8896A8]">
+                <span className="text-sm font-semibold text-slate-100">이용약관</span>
+                <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#616161]">
                   보기
                   <ChevronRight size={16} />
                 </span>
@@ -600,19 +599,19 @@ export default function SettingsPage() {
 
           {authState.type !== 'guest' ? (
             <section className="px-4">
-              <h2 className="mb-2 px-2 text-xs font-semibold text-[#8896A8]">데이터 관리</h2>
-              <div className="overflow-hidden rounded-[14px] border border-[#E4E9F0] bg-white">
+              <h2 className="mb-2 px-2 text-xs font-semibold text-[#616161]">데이터 관리</h2>
+              <div className="overflow-hidden rounded-[14px] border border-[#323232] bg-[#1E1E1E]">
                 <button
                   type="button"
                   onClick={() => setDeleteAllStep(1)}
                   disabled={Boolean(isBusy)}
-                  className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7] active:bg-[#E4E9F0] disabled:opacity-50 disabled:pointer-events-none"
+                  className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#1f2a42] active:bg-[#2a3652] disabled:opacity-50 disabled:pointer-events-none"
                 >
-                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#E05252]">
+                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-rose-400">
                     <Trash2 size={16} />
                     모든 콘텐츠 삭제
                   </span>
-                  <ChevronRight size={16} className="text-[#8896A8]" />
+                  <ChevronRight size={16} className="text-[#616161]" />
                 </button>
               </div>
             </section>
@@ -620,19 +619,19 @@ export default function SettingsPage() {
 
           {authState.type !== 'guest' ? (
             <section className="mt-4 px-4">
-              <h2 className="mb-2 px-2 text-xs font-semibold text-[#8896A8]">안전</h2>
-              <div className="overflow-hidden rounded-[14px] border border-[#E4E9F0] bg-white">
+              <h2 className="mb-2 px-2 text-xs font-semibold text-[#616161]">안전</h2>
+              <div className="overflow-hidden rounded-[14px] border border-[#323232] bg-[#1E1E1E]">
                 <button
                   type="button"
                   onClick={handleLogout}
                   disabled={Boolean(isBusy)}
-                  className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7] active:bg-[#E4E9F0] disabled:opacity-50 disabled:pointer-events-none"
+                  className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#1f2a42] active:bg-[#2a3652] disabled:opacity-50 disabled:pointer-events-none"
                 >
-                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#1A2233]">
+                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-100">
                     <LogOut size={16} />
                     로그아웃
                   </span>
-                  <ChevronRight size={16} className="text-[#8896A8]" />
+                  <ChevronRight size={16} className="text-[#616161]" />
                 </button>
 
                 {authState.type === 'member' ? (
@@ -640,13 +639,13 @@ export default function SettingsPage() {
                     type="button"
                     onClick={handleDeleteAccount}
                     disabled={Boolean(isBusy)}
-                    className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7] active:bg-[#E4E9F0] disabled:opacity-50 disabled:pointer-events-none"
+                    className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#1f2a42] active:bg-[#2a3652] disabled:opacity-50 disabled:pointer-events-none"
                   >
-                    <span className="inline-flex items-center gap-2 text-sm font-semibold" style={{ color: '#E05252' }}>
+                    <span className="inline-flex items-center gap-2 text-sm font-semibold text-rose-400">
                       <Trash2 size={16} />
                       계정 삭제
                     </span>
-                    <ChevronRight size={16} className="text-[#8896A8]" />
+                    <ChevronRight size={16} className="text-[#616161]" />
                   </button>
                 ) : null}
               </div>
@@ -656,29 +655,29 @@ export default function SettingsPage() {
       )}
 
       {deleteAllStep > 0 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6" onClick={() => setDeleteAllStep(0)}>
-          <div className="w-full max-w-[340px] rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6" onClick={() => setDeleteAllStep(0)}>
+          <div className="w-full max-w-[340px] rounded-2xl bg-[#1E1E1E] border border-[#323232] p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
             {deleteAllStep === 1 ? (
               <>
-                <div className="mb-1 flex items-center gap-2 text-[#E05252]">
+                <div className="mb-1 flex items-center gap-2 text-rose-400">
                   <Trash2 size={20} />
                   <h3 className="text-base font-bold">모든 콘텐츠 삭제</h3>
                 </div>
-                <p className="mt-2 text-sm text-[#5A6777]">
+                <p className="mt-2 text-sm text-[#777777]">
                   저장된 모든 콘텐츠가 영구적으로 삭제됩니다.<br />이 작업은 되돌릴 수 없어요.
                 </p>
                 <div className="mt-5 flex gap-2">
                   <button
                     type="button"
                     onClick={() => setDeleteAllStep(0)}
-                    className="flex-1 rounded-xl border border-[#E4E9F0] py-2.5 text-sm font-semibold text-[#5A6777] transition hover:bg-[#F0F2F7] active:bg-[#E4E9F0] disabled:opacity-50 disabled:pointer-events-none"
+                    className="flex-1 rounded-xl border border-[#323232] py-2.5 text-sm font-semibold text-[#777777] transition hover:bg-[#1f2a42] active:bg-[#2a3652] disabled:opacity-50 disabled:pointer-events-none"
                   >
                     취소
                   </button>
                   <button
                     type="button"
                     onClick={() => setDeleteAllStep(2)}
-                    className="flex-1 rounded-xl bg-[#E05252] py-2.5 text-sm font-semibold text-white transition hover:bg-[#C94444] active:bg-[#B33A3A]"
+                    className="flex-1 rounded-xl bg-rose-600 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-500 active:bg-rose-400"
                   >
                     삭제할게요
                   </button>
@@ -686,18 +685,18 @@ export default function SettingsPage() {
               </>
             ) : (
               <>
-                <div className="mb-1 flex items-center gap-2 text-[#E05252]">
+                <div className="mb-1 flex items-center gap-2 text-rose-400">
                   <AlertTriangle size={20} />
                   <h3 className="text-base font-bold">정말 삭제하시겠어요?</h3>
                 </div>
-                <p className="mt-2 text-sm text-[#5A6777]">
+                <p className="mt-2 text-sm text-[#777777]">
                   삭제하면 복구할 수 없습니다.<br />정말로 모든 콘텐츠를 삭제할까요?
                 </p>
                 <div className="mt-5 flex gap-2">
                   <button
                     type="button"
                     onClick={() => setDeleteAllStep(0)}
-                    className="flex-1 rounded-xl border border-[#E4E9F0] py-2.5 text-sm font-semibold text-[#5A6777] transition hover:bg-[#F0F2F7] active:bg-[#E4E9F0] disabled:opacity-50 disabled:pointer-events-none"
+                    className="flex-1 rounded-xl border border-[#323232] py-2.5 text-sm font-semibold text-[#777777] transition hover:bg-[#1f2a42] active:bg-[#2a3652] disabled:opacity-50 disabled:pointer-events-none"
                   >
                     아니요
                   </button>
@@ -705,7 +704,7 @@ export default function SettingsPage() {
                     type="button"
                     onClick={handleDeleteAllContents}
                     disabled={isBusy === 'delete-all'}
-                    className="flex-1 rounded-xl bg-[#E05252] py-2.5 text-sm font-semibold text-white transition hover:bg-[#C94444] disabled:opacity-50"
+                    className="flex-1 rounded-xl bg-rose-600 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-500 disabled:opacity-50"
                   >
                     {isBusy === 'delete-all' ? '삭제 중...' : '네, 모두 삭제'}
                   </button>

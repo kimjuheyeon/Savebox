@@ -96,7 +96,7 @@ export default function ContentDetailPage({ params }) {
   if (loading) {
     return (
       <main className="mx-auto w-full max-w-[440px] px-4 py-10">
-        <div className="animate-pulse rounded-2xl bg-white p-8 text-center text-sm text-slate-400">
+        <div className="animate-pulse rounded-2xl bg-[#1E1E1E] p-8 text-center text-sm text-[#616161]">
           불러오는 중...
         </div>
       </main>
@@ -106,9 +106,9 @@ export default function ContentDetailPage({ params }) {
   if (!content) {
     return (
       <main className="mx-auto w-full max-w-[440px] px-4 py-10">
-        <h1 className="text-xl font-bold text-slate-900">콘텐츠를 찾을 수 없어요</h1>
-        <p className="mt-2 text-sm text-slate-500">ID가 존재하지 않거나 삭제된 항목입니다.</p>
-        <Link href="/content" className="mt-4 inline-block rounded-[8px] border border-slate-200 px-4 py-2 transition hover:bg-slate-50 active:bg-slate-100">
+        <h1 className="text-xl font-bold text-slate-100">콘텐츠를 찾을 수 없어요</h1>
+        <p className="mt-2 text-sm text-[#777777]">ID가 존재하지 않거나 삭제된 항목입니다.</p>
+        <Link href="/content" className="mt-4 inline-block rounded-[8px] border border-[#323232] px-4 py-2 text-[#777777] transition hover:bg-[#212b42] active:bg-[#283350]">
           목록으로 돌아가기
         </Link>
       </main>
@@ -201,7 +201,7 @@ export default function ContentDetailPage({ params }) {
           <>
             <button
               onClick={handleShare}
-              className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-[8px] border border-slate-200 transition hover:bg-slate-50 active:bg-slate-100`}
+              className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-[8px] border border-[#323232] text-[#777777] transition hover:bg-[#212b42] active:bg-[#283350]`}
               aria-label="공유"
             >
               <Share2 size={ICON_BUTTON_ICON_SIZE} />
@@ -209,14 +209,14 @@ export default function ContentDetailPage({ params }) {
             <div className="relative" ref={actionMenuRef}>
               <button
                 onClick={() => setActionMenuOpen((prev) => !prev)}
-                className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-[8px] border border-slate-200 transition hover:bg-slate-50 active:bg-slate-100`}
+                className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-[8px] border border-[#323232] text-[#777777] transition hover:bg-[#212b42] active:bg-[#283350]`}
                 aria-label="더보기"
               >
                 <MoreHorizontal size={ICON_BUTTON_ICON_SIZE} />
               </button>
               {actionMenuOpen && (
                 <div
-                  className="absolute right-0 top-full z-50 mt-2 w-28 overflow-hidden rounded-[8px] border border-slate-200 bg-white shadow-lg"
+                  className="absolute right-0 top-full z-50 mt-2 w-28 overflow-hidden rounded-[8px] border border-[#323232] bg-[#1E1E1E] shadow-lg"
                   onClick={(event) => event.stopPropagation()}
                 >
                   <button
@@ -226,7 +226,7 @@ export default function ContentDetailPage({ params }) {
                       openEditorSheet();
                     }}
                     type="button"
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-slate-700 transition hover:bg-slate-50 active:bg-slate-100"
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-[#777777] transition hover:bg-[#212b42] active:bg-[#283350]"
                   >
                     <PencilLine size={12} />
                     수정
@@ -238,7 +238,7 @@ export default function ContentDetailPage({ params }) {
                       handleDelete();
                     }}
                     type="button"
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-rose-600 transition hover:bg-rose-50 active:bg-rose-100"
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-rose-400 transition hover:bg-rose-950/30 active:bg-rose-950/50"
                   >
                     <Trash2 size={12} />
                     삭제
@@ -250,18 +250,18 @@ export default function ContentDetailPage({ params }) {
         }
       />
 
-      <section className="mx-4 mt-4 overflow-hidden rounded-[8px] border border-white bg-white">
-        <div className="aspect-[16/9] bg-slate-100">
+      <section className="mx-4 mt-4 overflow-hidden rounded-[8px] border border-[#323232] bg-[#1E1E1E]">
+        <div className="aspect-[16/9] bg-[#1E1E1E]">
           {content.thumbnail_url ? (
             <img src={content.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-slate-100 p-6">
+            <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-[#1E1E1E] p-6">
               {sourceMeta.iconSrc ? (
                 <img src={sourceMeta.iconSrc} alt={safeSource} className="h-12 w-12 object-contain opacity-60" />
               ) : (
-                <span className="text-4xl font-black text-slate-400">{safeSource.charAt(0)}</span>
+                <span className="text-4xl font-black text-[#616161]">{safeSource.charAt(0)}</span>
               )}
-              <p className="line-clamp-2 text-center text-sm font-medium text-slate-500">{safeTitle}</p>
+              <p className="line-clamp-2 text-center text-sm font-medium text-[#777777]">{safeTitle}</p>
             </div>
           )}
         </div>
@@ -278,21 +278,21 @@ export default function ContentDetailPage({ params }) {
               )}
               {safeSource}
             </p>
-            <h1 className="mt-2 text-2xl font-bold leading-snug text-slate-900">{safeTitle}</h1>
-            <p className="mt-2 text-sm text-slate-500">컬렉션 태그: {linkedCollection?.name || '미분류'}</p>
+            <h1 className="mt-2 text-2xl font-bold leading-snug text-slate-100">{safeTitle}</h1>
+            <p className="mt-2 text-sm text-[#777777]">컬렉션 태그: {linkedCollection?.name || '미분류'}</p>
             <p className={`mt-2 inline-flex items-center rounded-[8px] border px-2.5 py-1 text-xs ${color.badge}`}>
               <span className={`mr-1 h-2 w-2 rounded-[8px] ${color.dot}`} /> {content.color_tag || 'Gray'}
             </p>
           </div>
 
-          <div className="rounded-[8px] border border-slate-100 bg-slate-50 p-3">
-            <p className="text-xs font-semibold text-slate-500">메모</p>
-            <p className="mt-1 min-h-[48px] text-sm text-slate-700">
-              {content.memo ? content.memo : <span className="text-slate-400">메모를 추가하세요</span>}
+          <div className="rounded-[8px] border border-[#323232] bg-[#1E1E1E] p-3">
+            <p className="text-xs font-semibold text-[#777777]">메모</p>
+            <p className="mt-1 min-h-[48px] text-sm text-[#777777]">
+              {content.memo ? content.memo : <span className="text-[#616161]">메모를 추가하세요</span>}
             </p>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-slate-500">
+          <div className="flex items-center justify-between text-xs text-[#777777]">
             <span className="inline-flex items-center gap-1">
               <CalendarDays size={14} />
               저장일시: {content.created_at ? formatKoreanDate(content.created_at) : '-'}
@@ -307,14 +307,14 @@ export default function ContentDetailPage({ params }) {
             <Link
               href={content.url || '#'}
               target="_blank"
-              className="flex w-full items-center justify-center gap-2 rounded-[8px] bg-indigo-600 px-4 py-3 font-semibold text-white transition hover:bg-indigo-700 active:bg-indigo-800"
+              className="flex w-full items-center justify-center gap-2 rounded-[8px] bg-[#3385FF] px-4 py-3 font-semibold text-white transition hover:bg-[#2f78f0] active:bg-[#2669d9]"
             >
               <ExternalLink size={16} />
               원본 링크 열기
             </Link>
           </div>
           {deleted && (
-            <p className="text-sm text-rose-600">삭제 처리가 진행 중입니다.</p>
+            <p className="text-sm text-rose-400">삭제 처리가 진행 중입니다.</p>
           )}
         </div>
       </section>
@@ -328,40 +328,40 @@ export default function ContentDetailPage({ params }) {
 
       {openEditor && (
         <>
-          <div onClick={closeEditor} className="fixed inset-0 z-30 bg-black/45" />
+          <div onClick={closeEditor} className="fixed inset-0 z-30 bg-black/60" />
           <div className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-[440px]">
             <div
-              className="rounded-t-2xl border border-slate-200 bg-white p-4 shadow-2xl overflow-y-auto"
+              className="rounded-t-2xl border border-[#323232] bg-[#1E1E1E] p-4 shadow-2xl overflow-y-auto"
               style={{ height: 'min(70vh, 70dvh)', paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
             >
               <div className="mb-4 flex items-center justify-between">
                 <button
                   onClick={closeEditor}
-                  className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-[8px] text-slate-500 transition hover:bg-slate-100 active:bg-slate-200`}
+                  className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-[8px] text-[#777777] transition hover:bg-[#1f2a42] active:bg-[#2a3652]`}
                 >
                   <X size={ICON_BUTTON_ICON_SIZE} />
                 </button>
-                <h2 className="text-sm font-bold">콘텐츠 수정</h2>
+                <h2 className="text-sm font-bold text-slate-100">콘텐츠 수정</h2>
                 <div className="w-9" />
               </div>
 
               <div className="space-y-3">
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-slate-600">콘텐츠 이름</span>
+                  <span className="mb-1 block text-xs font-semibold text-[#777777]">콘텐츠 이름</span>
                   <input
                     value={draft?.title || ''}
                     onChange={(event) => setDraft((prev) => ({ ...prev, title: event.target.value }))}
                     maxLength={80}
-                    className="w-full rounded-[8px] border border-slate-300 px-3 py-2 text-sm"
+                    className="w-full rounded-[8px] border border-[#323232] bg-[#1E1E1E] px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-500"
                   />
                 </label>
 
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-slate-600">출처</span>
+                  <span className="mb-1 block text-xs font-semibold text-[#777777]">출처</span>
                   <select
                     value={draft?.source || 'Other'}
                     onChange={(event) => setDraft((prev) => ({ ...prev, source: event.target.value }))}
-                    className="w-full rounded-[8px] border border-slate-300 px-3 py-2 text-sm"
+                    className="w-full rounded-[8px] border border-[#323232] bg-[#1E1E1E] px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-500"
                   >
                     {SNS_SOURCES.map((source) => (
                       <option key={source} value={source}>
@@ -372,11 +372,11 @@ export default function ContentDetailPage({ params }) {
                 </label>
 
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-slate-600">저장할 컬렉션</span>
+                  <span className="mb-1 block text-xs font-semibold text-[#777777]">저장할 컬렉션</span>
                   <select
                     value={draft?.collectionId || ''}
                     onChange={(event) => setDraft((prev) => ({ ...prev, collectionId: event.target.value }))}
-                    className="w-full rounded-[8px] border border-slate-300 px-3 py-2 text-sm"
+                    className="w-full rounded-[8px] border border-[#323232] bg-[#1E1E1E] px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-500"
                   >
                     <option value="">미분류</option>
                     {collections.filter((c) => !c.is_system).map((collection) => (
@@ -388,16 +388,16 @@ export default function ContentDetailPage({ params }) {
                 </label>
 
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-slate-600">
+                  <span className="mb-1 block text-xs font-semibold text-[#777777]">
                     메모 (최대 500자)
                   </span>
                   <textarea
                     value={draft?.memo || ''}
                     maxLength={500}
                     onChange={(event) => setDraft((prev) => ({ ...prev, memo: event.target.value }))}
-                    className="h-28 w-full resize-none rounded-[8px] border border-slate-300 px-3 py-2 text-sm"
+                    className="h-28 w-full resize-none rounded-[8px] border border-[#323232] bg-[#1E1E1E] px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-500"
                   />
-                  <p className="mt-1 text-right text-xs text-slate-400">
+                  <p className="mt-1 text-right text-xs text-[#616161]">
                     {(draft?.memo || '').length}/500
                   </p>
                 </label>
@@ -406,7 +406,7 @@ export default function ContentDetailPage({ params }) {
               <Button
                 onClick={handleSave}
                 disabled={!draftIsDirty || saving}
-                className="mt-4 w-full bg-indigo-600 py-3 text-sm font-bold text-white hover:bg-indigo-700 active:bg-indigo-800 disabled:bg-indigo-200"
+                className="mt-4 w-full bg-[#3385FF] py-3 text-sm font-bold text-white hover:bg-[#2f78f0] active:bg-[#2669d9] disabled:bg-indigo-900 disabled:text-indigo-600"
               >
                 {saving ? '저장중...' : '저장'}
               </Button>

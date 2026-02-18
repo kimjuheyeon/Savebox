@@ -127,14 +127,14 @@ export default function LoginPage() {
 
   return (
     <section className="mx-auto mt-4 max-w-[400px]">
-      <p className="inline-flex rounded-[8px] bg-indigo-100 px-3 py-1 text-[11px] font-semibold text-indigo-700">
+      <p className="inline-flex rounded-[8px] bg-indigo-950/50 px-3 py-1 text-[11px] font-semibold text-indigo-400">
         AUTH-05
       </p>
-      <h1 className="mt-3 text-2xl font-black text-slate-900">다시 만나서 반가워요</h1>
-      <p className="mt-2 text-sm text-slate-600">이메일/비밀번호로 로그인해요.</p>
+      <h1 className="mt-3 text-2xl font-black text-white">다시 만나서 반가워요</h1>
+      <p className="mt-2 text-sm text-[#777777]">이메일/비밀번호로 로그인해요.</p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-3">
-        <label htmlFor="login-email" className="block text-sm font-semibold text-slate-700">
+        <label htmlFor="login-email" className="block text-sm font-semibold text-[#777777]">
           이메일 주소
         </label>
         <input
@@ -143,11 +143,11 @@ export default function LoginPage() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           placeholder="name@example.com"
-          className="h-12 w-full rounded-[8px] border border-slate-300 px-4 text-sm outline-none ring-indigo-300 transition focus:border-indigo-500 focus:ring-1"
+          className="h-12 w-full rounded-[8px] border border-[#323232] bg-[#1E1E1E] px-4 text-sm text-slate-100 placeholder:text-[#616161] outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30"
           autoComplete="email"
         />
 
-        <label htmlFor="login-password" className="block text-sm font-semibold text-slate-700">
+        <label htmlFor="login-password" className="block text-sm font-semibold text-[#777777]">
           비밀번호
         </label>
         <input
@@ -156,46 +156,46 @@ export default function LoginPage() {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           placeholder="8자 이상"
-          className="h-12 w-full rounded-[8px] border border-slate-300 px-4 text-sm outline-none ring-indigo-300 transition focus:border-indigo-500 focus:ring-1"
+          className="h-12 w-full rounded-[8px] border border-[#323232] bg-[#1E1E1E] px-4 text-sm text-slate-100 placeholder:text-[#616161] outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30"
           autoComplete="current-password"
         />
 
-        {hasError ? <p className="text-xs font-semibold text-rose-600">{hasError}</p> : null}
+        {hasError ? <p className="text-xs font-semibold text-rose-400">{hasError}</p> : null}
 
         <button
           type="submit"
           disabled={!isValidSubmit || isLoading}
           className={`mt-2 h-12 w-full rounded-[8px] text-sm font-bold ${
-            isValidSubmit && !isLoading ? 'bg-indigo-600 text-white' : 'cursor-not-allowed bg-indigo-200 text-indigo-100'
+            isValidSubmit && !isLoading ? 'bg-[#3385FF] text-white hover:bg-[#2f78f0]' : 'cursor-not-allowed bg-indigo-900 text-indigo-600'
           }`}
         >
           {isLoading ? '로그인 중...' : '로그인'}
         </button>
       </form>
 
-      <div className="rounded-[8px] bg-slate-50 p-3 text-xs text-slate-600">
-        <p className="flex items-center gap-2 font-semibold text-slate-700">
+      <div className="rounded-[8px] bg-[#1E1E1E] p-3 text-xs text-[#777777]">
+        <p className="flex items-center gap-2 font-semibold text-[#777777]">
           <Info size={14} />
           계정이 없다면
         </p>
-        <Link href="/auth" className="mt-2 inline-flex font-semibold text-indigo-700">
+        <Link href="/auth" className="mt-2 inline-flex font-semibold text-indigo-400">
           회원가입 화면으로 이동
         </Link>
       </div>
 
       <div className="mt-6 space-y-3">
-        <div className="flex items-center gap-2 text-xs text-slate-500">
-          <span className="h-px flex-1 bg-slate-200" />
+        <div className="flex items-center gap-2 text-xs text-[#616161]">
+          <span className="h-px flex-1 bg-[#2a3347]" />
           또는
-          <span className="h-px flex-1 bg-slate-200" />
+          <span className="h-px flex-1 bg-[#2a3347]" />
         </div>
 
         <button
           type="button"
           onClick={handleGoogleLogin}
           disabled={isSocialLoading || isLoading}
-          className={`h-12 w-full rounded-[8px] border border-slate-300 px-4 py-2 text-sm font-semibold ${
-            isSocialLoading || isLoading ? 'cursor-not-allowed bg-slate-100 text-slate-400' : 'bg-white text-slate-700'
+          className={`h-12 w-full rounded-[8px] border border-[#323232] px-4 py-2 text-sm font-semibold ${
+            isSocialLoading || isLoading ? 'cursor-not-allowed bg-[#1E1E1E] text-[#616161]' : 'bg-[#1E1E1E] text-[#ffffff] hover:bg-[#212b42]'
           }`}
         >
           {isSocialLoading ? '처리 중...' : 'Google로 로그인'}

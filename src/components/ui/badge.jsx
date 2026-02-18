@@ -3,8 +3,8 @@ import { cn } from '@/lib/utils';
 export function Badge({ className, variant = 'default', ...props }) {
   const variantClass =
     variant === 'destructive'
-      ? 'border-rose-500/40 text-rose-700 bg-rose-50'
-      : 'border-sky-500/30 text-sky-700 bg-sky-50';
+      ? 'border-rose-500/40 text-rose-400 bg-rose-950/50'
+      : 'border-indigo-500/30 text-indigo-400 bg-indigo-950/50';
 
   return (
     <span

@@ -90,13 +90,15 @@ export default function SignupEmailPage() {
     }
   };
 
+  const inputClass = "h-12 w-full rounded-[8px] border border-[#323232] bg-[#1E1E1E] px-4 text-sm text-slate-100 placeholder:text-[#616161] outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30";
+
   return (
     <section className="mx-auto mt-4 max-w-[400px]">
-      <h1 className="text-2xl font-black text-slate-900">이메일로 시작</h1>
-      <p className="mt-2 text-sm text-slate-700">이메일 주소와 비밀번호로 가입을 진행해요.</p>
+      <h1 className="text-2xl font-black text-white">이메일로 시작</h1>
+      <p className="mt-2 text-sm text-[#777777]">이메일 주소와 비밀번호로 가입을 진행해요.</p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-3">
-        <label htmlFor="displayName" className="block text-sm font-semibold text-slate-700">
+        <label htmlFor="displayName" className="block text-sm font-semibold text-[#777777]">
           이름 (선택)
         </label>
         <input
@@ -105,11 +107,11 @@ export default function SignupEmailPage() {
           value={displayName}
           onChange={(event) => setDisplayName(event.target.value)}
           placeholder="닉네임"
-          className="h-12 w-full rounded-[8px] border border-slate-300 px-4 text-sm outline-none ring-indigo-300 transition focus:border-indigo-500 focus:ring-1"
+          className={inputClass}
           autoComplete="name"
         />
 
-        <label htmlFor="email" className="block text-sm font-semibold text-slate-700">
+        <label htmlFor="email" className="block text-sm font-semibold text-[#777777]">
           이메일 주소
         </label>
         <input
@@ -118,11 +120,11 @@ export default function SignupEmailPage() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           placeholder="name@example.com"
-          className="h-12 w-full rounded-[8px] border border-slate-300 px-4 text-sm outline-none ring-indigo-300 transition focus:border-indigo-500 focus:ring-1"
+          className={inputClass}
           autoComplete="email"
         />
 
-        <label htmlFor="password" className="block text-sm font-semibold text-slate-700">
+        <label htmlFor="password" className="block text-sm font-semibold text-[#777777]">
           비밀번호
         </label>
         <input
@@ -131,11 +133,11 @@ export default function SignupEmailPage() {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           placeholder="8자 이상"
-          className="h-12 w-full rounded-[8px] border border-slate-300 px-4 text-sm outline-none ring-indigo-300 transition focus:border-indigo-500 focus:ring-1"
+          className={inputClass}
           autoComplete="new-password"
         />
 
-        <label htmlFor="passwordConfirm" className="block text-sm font-semibold text-slate-700">
+        <label htmlFor="passwordConfirm" className="block text-sm font-semibold text-[#777777]">
           비밀번호 확인
         </label>
         <input
@@ -144,26 +146,26 @@ export default function SignupEmailPage() {
           value={passwordConfirm}
           onChange={(event) => setPasswordConfirm(event.target.value)}
           placeholder="비밀번호 재입력"
-          className="h-12 w-full rounded-[8px] border border-slate-300 px-4 text-sm outline-none ring-indigo-300 transition focus:border-indigo-500 focus:ring-1"
+          className={inputClass}
           autoComplete="new-password"
         />
 
-        {errorMessage ? <p className="text-sm font-semibold text-rose-600">{errorMessage}</p> : null}
+        {errorMessage ? <p className="text-sm font-semibold text-rose-400">{errorMessage}</p> : null}
 
         <button
           type="submit"
           disabled={!isValidSubmit || isLoading}
           className={`mt-2 h-12 w-full rounded-[8px] text-sm font-bold ${
             isValidSubmit && !isLoading
-              ? 'bg-indigo-600 text-white'
-              : 'cursor-not-allowed bg-indigo-200 text-indigo-100'
+              ? 'bg-[#3385FF] text-white hover:bg-[#2f78f0]'
+              : 'cursor-not-allowed bg-indigo-900 text-indigo-600'
           }`}
         >
           {isLoading ? '가입 처리중...' : '다음'}
         </button>
       </form>
 
-      <p className="mt-6 text-xs text-slate-500">
+      <p className="mt-6 text-xs text-[#616161]">
         이미 입력한 주소로 가입이 진행 중이면 계속 진행할 수 있어요.
       </p>
     </section>

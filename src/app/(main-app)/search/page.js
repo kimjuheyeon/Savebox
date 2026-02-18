@@ -53,7 +53,7 @@ export default function SearchPage() {
     return (
       <>
         {text.slice(0, idx)}
-        <mark className="rounded-[4px] px-0.5 bg-indigo-100 text-indigo-700">{text.slice(idx, end)}</mark>
+        <mark className="rounded-[4px] px-0.5 bg-indigo-500/30 text-indigo-300">{text.slice(idx, end)}</mark>
         {text.slice(end)}
       </>
     );
@@ -78,18 +78,18 @@ export default function SearchPage() {
       <PageHeader title="검색">
         <div className="mt-3 flex items-center gap-2">
           <div className="relative flex-1">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#616161]" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="검색어 입력 (제목/메모/출처)"
-              className="w-full rounded-[8px] border border-slate-200 py-3 pl-9 pr-9 text-sm focus:border-indigo-400 focus:outline-none"
+              className="w-full rounded-[8px] border border-[#323232] bg-[#1E1E1E] py-3 pl-9 pr-9 text-sm text-slate-100 placeholder:text-[#616161] focus:border-indigo-500 focus:outline-none"
             />
             {!!query && (
               <button
                 type="button"
                 onClick={() => setQuery('')}
-                className={`absolute right-2 top-1/2 ${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} -translate-y-1/2 rounded-[8px] text-slate-400 transition hover:text-slate-600 active:text-slate-800`}
+                className={`absolute right-2 top-1/2 ${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} -translate-y-1/2 rounded-[8px] text-[#777777] transition hover:text-[#ffffff] active:text-white`}
                 aria-label="입력값 지우기"
               >
                 <X size={ICON_BUTTON_ICON_SIZE} />
@@ -98,7 +98,7 @@ export default function SearchPage() {
           </div>
           <button
             onClick={() => applySearch(query)}
-            className="rounded-[8px] bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700 active:bg-indigo-800"
+            className="rounded-[8px] bg-[#3385FF] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#2f78f0] active:bg-[#2669d9]"
           >
             검색
           </button>
@@ -107,7 +107,7 @@ export default function SearchPage() {
 
       <div className="px-4 pt-4">
         {loading && (
-          <div className="animate-pulse rounded-[8px] bg-white p-8 text-center text-sm text-slate-400">
+          <div className="animate-pulse rounded-[8px] bg-[#1E1E1E] p-8 text-center text-sm text-[#616161]">
             불러오는 중...
           </div>
         )}
@@ -116,7 +116,7 @@ export default function SearchPage() {
           <div className="space-y-4">
             {recentSearches.length > 0 && (
               <div>
-                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#777777]">
                   <Clock3 size={16} />
                   최근 검색어
                 </div>
@@ -125,7 +125,7 @@ export default function SearchPage() {
                     <button
                       key={item}
                       onClick={() => applySearch(item)}
-                      className="inline-flex items-center gap-2 rounded-[8px] border border-slate-200 px-3 py-1.5 text-xs transition hover:bg-slate-50 active:bg-slate-100"
+                      className="inline-flex items-center gap-2 rounded-[8px] border border-[#323232] px-3 py-1.5 text-xs text-[#777777] transition hover:bg-[#212b42] active:bg-[#283350]"
                     >
                       <span>{item}</span>
                       <span
@@ -133,7 +133,7 @@ export default function SearchPage() {
                           event.stopPropagation();
                           removeRecent(item);
                         }}
-                        className="text-slate-400 hover:text-slate-600"
+                        className="text-[#616161] hover:text-[#777777]"
                       >
                         <X size={12} />
                       </span>
@@ -144,7 +144,7 @@ export default function SearchPage() {
             )}
 
             <div>
-              <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+              <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#777777]">
                 <Flame size={16} />
                 인기 검색어
               </div>
@@ -153,7 +153,7 @@ export default function SearchPage() {
                   <button
                     key={item}
                     onClick={() => applySearch(item)}
-                    className="rounded-[8px] bg-slate-900 px-3 py-1.5 text-xs text-white transition hover:bg-slate-800 active:bg-slate-700"
+                    className="rounded-[8px] bg-[#3385FF] px-3 py-1.5 text-xs text-white transition hover:bg-[#2f78f0] active:bg-[#2669d9]"
                   >
                     {item}
                   </button>
@@ -165,9 +165,9 @@ export default function SearchPage() {
 
         {!loading && cleaned.length > 0 && (
           <section>
-            <h2 className="mb-3 text-sm font-semibold text-slate-700">"{cleaned}" 검색 결과 {results.length}개</h2>
+            <h2 className="mb-3 text-sm font-semibold text-[#777777]">"{cleaned}" 검색 결과 {results.length}개</h2>
             {results.length === 0 ? (
-              <div className="rounded-[8px] border border-dashed border-slate-300 bg-white p-8 text-sm text-slate-500">
+              <div className="rounded-[8px] border border-dashed border-[#323232] bg-[#1E1E1E] p-8 text-sm text-[#777777]">
                 검색 결과가 없어요. 검색어를 바꿔서 다시 시도하세요.
               </div>
             ) : (
@@ -177,11 +177,11 @@ export default function SearchPage() {
                     key={item.id}
                     href={`/content/${item.id}`}
                     leading={
-                      <div className="h-12 w-12 overflow-hidden rounded-[8px] bg-slate-100">
+                      <div className="h-12 w-12 overflow-hidden rounded-[8px] bg-[#1E1E1E]">
                         {item.thumbnail_url ? (
                           <img src={item.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                         ) : (
-                          <div className="grid h-full w-full place-items-center text-lg font-bold text-slate-500">
+                          <div className="grid h-full w-full place-items-center text-lg font-bold text-[#777777]">
                             {item.title.charAt(0)}
                           </div>
                         )}
@@ -192,7 +192,7 @@ export default function SearchPage() {
                       <>
                         {item.source} · {formatKoreanDate(item.created_at)}
                         {item.memo && (
-                          <span className="mt-1 block text-xs text-slate-400">
+                          <span className="mt-1 block text-xs text-[#616161]">
                             {highlight(item.memo, cleaned)}
                           </span>
                         )}

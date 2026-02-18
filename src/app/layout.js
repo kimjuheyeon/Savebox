@@ -15,8 +15,8 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ko">
-      <body className="antialiased">{children}</body>
+    <html lang="ko" className="dark">
+      <body className="antialiased bg-[#ffffff] text-[#ffffff]">{children}</body>
     </html>
   );
 }
