@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { LayoutGrid, Loader2, List, MoreHorizontal, PencilLine, Plus, Search, Trash2, X } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { SNS_SOURCES, getSourceMeta, shortDate } from '@/lib/prototypeData';
+import { Button } from '@/components/ui/button';
 import { fetchContents, fetchCollections, createContent, deleteContent } from '@/lib/api';
 
 const SORT_OPTIONS = [
@@ -199,7 +200,7 @@ function ContentPageInner() {
       <PageHeader
         title="콘텐츠 목록"
         rightContent={
-          <Link href="/search" className="inline-flex items-center rounded-lg border border-slate-200 px-2 py-1.5">
+          <Link href="/search" className="inline-flex items-center rounded-lg border border-slate-200 px-2 py-1.5 transition hover:bg-slate-50 active:bg-slate-100">
             <Search size={16} />
           </Link>
         }
@@ -208,8 +209,8 @@ function ContentPageInner() {
           <div className="flex items-center rounded-xl border border-slate-200 bg-white">
             <button
               onClick={() => setViewMode('grid')}
-              className={`flex-1 rounded-l-xl px-3 py-2 text-xs font-semibold ${
-                viewMode === 'grid' ? 'bg-indigo-500 text-white' : 'text-slate-600'
+              className={`flex-1 rounded-l-xl px-3 py-2 text-xs font-semibold transition ${
+                viewMode === 'grid' ? 'bg-indigo-500 text-white active:bg-indigo-700' : 'text-slate-600 hover:bg-slate-50 active:bg-slate-100'
               }`}
             >
               <span className="inline-flex items-center justify-center gap-1">
@@ -219,8 +220,8 @@ function ContentPageInner() {
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`flex-1 rounded-r-xl px-3 py-2 text-xs font-semibold ${
-                viewMode === 'list' ? 'bg-indigo-500 text-white' : 'text-slate-600'
+              className={`flex-1 rounded-r-xl px-3 py-2 text-xs font-semibold transition ${
+                viewMode === 'list' ? 'bg-indigo-500 text-white active:bg-indigo-700' : 'text-slate-600 hover:bg-slate-50 active:bg-slate-100'
               }`}
             >
               <span className="inline-flex items-center justify-center gap-1">
@@ -248,10 +249,10 @@ function ContentPageInner() {
             <button
               key={source}
               onClick={() => setSourceFilter(source)}
-              className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold ${
+              className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                 sourceFilter === source
-                  ? 'border-indigo-400 bg-indigo-50 text-indigo-700'
-                  : 'border-slate-200 text-slate-600'
+                  ? 'border-indigo-400 bg-indigo-50 text-indigo-700 active:bg-indigo-100'
+                  : 'border-slate-200 text-slate-600 hover:bg-slate-50 active:bg-slate-100'
               }`}
             >
               {source}
@@ -267,7 +268,7 @@ function ContentPageInner() {
           </span>
           <button
             onClick={clearCollectionFilter}
-            className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+            className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 active:bg-slate-100"
           >
             <X size={12} />
             필터 해제
@@ -321,7 +322,7 @@ function ContentPageInner() {
                 <button
                   type="button"
                   onClick={() => setGridMenuId(gridMenuId === item.id ? null : item.id)}
-                  className="absolute right-2 top-2 z-[5] rounded-full bg-white/80 p-1.5 text-slate-600 shadow-sm backdrop-blur hover:bg-white"
+                  className="absolute right-2 top-2 z-[5] rounded-full bg-white/80 p-1.5 text-slate-600 shadow-sm backdrop-blur transition hover:bg-white active:bg-slate-100"
                   aria-label="더보기"
                 >
                   <MoreHorizontal size={16} />
@@ -330,14 +331,14 @@ function ContentPageInner() {
                   <div className="absolute right-2 top-10 z-10 w-32 rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
                     <Link
                       href={`/content/${item.id}?edit=true`}
-                      className="flex w-full items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"
+                      className="flex w-full items-center gap-2 px-3 py-2 text-xs text-slate-700 transition hover:bg-slate-50 active:bg-slate-100"
                     >
                       <PencilLine size={12} />
                       수정
                     </Link>
                     <button
                       onClick={() => handleDelete(item.id)}
-                      className="flex w-full items-center gap-2 px-3 py-2 text-xs text-rose-600 hover:bg-rose-50"
+                      className="flex w-full items-center gap-2 px-3 py-2 text-xs text-rose-600 transition hover:bg-rose-50 active:bg-rose-100"
                     >
                       <Trash2 size={12} />
                       삭제
@@ -370,7 +371,7 @@ function ContentPageInner() {
       <button
         type="button"
         onClick={() => setShowCreate(true)}
-        className="fixed z-20 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg active:bg-indigo-700"
+        className="fixed z-20 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg transition hover:bg-indigo-700 active:bg-indigo-800"
         style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))', right: 'max(1rem, calc((100vw - 440px) / 2 + 1rem))' }}
         aria-label="콘텐츠 추가"
       >
@@ -387,17 +388,11 @@ function ContentPageInner() {
               style={{ maxHeight: 'min(75vh, 75dvh)', paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
             >
               <div className="mb-4 flex items-center justify-between">
-                <button onClick={resetCreateForm} className="rounded-[8px] p-2 text-slate-500">
+                <button onClick={resetCreateForm} className="rounded-[8px] p-2 text-slate-500 transition hover:bg-slate-100 active:bg-slate-200">
                   <X size={20} />
                 </button>
                 <h2 className="text-sm font-bold">콘텐츠 추가</h2>
-                <button
-                  onClick={handleCreate}
-                  disabled={!newUrl.trim() || creating || fetching}
-                  className="rounded-[8px] bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white disabled:bg-indigo-200"
-                >
-                  {creating ? '추가 중...' : '추가'}
-                </button>
+                <div className="w-9" />
               </div>
 
               <div className="space-y-3">
@@ -493,6 +488,14 @@ function ContentPageInner() {
                   />
                 </label>
               </div>
+
+              <Button
+                onClick={handleCreate}
+                disabled={!newUrl.trim() || creating || fetching}
+                className="mt-4 w-full bg-indigo-600 py-3 text-sm font-bold text-white hover:bg-indigo-700 active:bg-indigo-800 disabled:bg-indigo-200"
+              >
+                {creating ? '추가 중...' : '추가'}
+              </Button>
             </div>
           </div>
         </>
@@ -549,7 +552,7 @@ function SwipeableListItem({ item, onDelete }) {
       <div className="absolute inset-y-0 right-0 flex items-stretch">
         <Link
           href={`/content/${item.id}`}
-          className="flex w-[70px] items-center justify-center bg-indigo-500 text-white"
+          className="flex w-[70px] items-center justify-center bg-indigo-500 text-white transition hover:bg-indigo-600 active:bg-indigo-700"
           onClick={closeActions}
         >
           <div className="flex flex-col items-center gap-1">
@@ -559,7 +562,7 @@ function SwipeableListItem({ item, onDelete }) {
         </Link>
         <button
           onClick={() => { onDelete(); closeActions(); }}
-          className="flex w-[70px] items-center justify-center bg-rose-500 text-white"
+          className="flex w-[70px] items-center justify-center bg-rose-500 text-white transition hover:bg-rose-600 active:bg-rose-700"
         >
           <div className="flex flex-col items-center gap-1">
             <Trash2 size={16} />
@@ -579,13 +582,14 @@ function SwipeableListItem({ item, onDelete }) {
         <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-slate-100">
           {safeItem.thumbnail_url ? (
             <img src={safeItem.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
-          ) : source.iconSrc ? (
-            <div className="grid h-full w-full place-items-center">
-              <img src={source.iconSrc} alt={sourceName} className="h-7 w-7 object-contain opacity-60" />
-            </div>
           ) : (
-            <div className="grid h-full w-full place-items-center text-lg font-black text-slate-400">
-              {sourceName.charAt(0)}
+            <div className="flex h-full w-full flex-col items-center justify-center gap-0.5 p-1">
+              {source.iconSrc ? (
+                <img src={source.iconSrc} alt={sourceName} className="h-6 w-6 object-contain opacity-60" />
+              ) : (
+                <span className="text-lg font-black text-slate-400">{sourceName.charAt(0)}</span>
+              )}
+              <p className="line-clamp-1 text-center text-[8px] font-medium text-slate-400">{title}</p>
             </div>
           )}
         </div>

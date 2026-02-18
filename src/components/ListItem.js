@@ -16,7 +16,7 @@ import Link from 'next/link';
  *   - 모두 없으면 렌더링만 되는 표시 행
  */
 export default function ListItem({ href, leading = null, title, subtitle = null, trailing = null, onClick, className = '' }) {
-  const baseClass = `flex items-center gap-3 rounded-[8px] bg-white px-3 py-3 ${className}`;
+  const baseClass = `flex items-center gap-3 rounded-[8px] bg-white px-3 py-3 transition hover:bg-slate-50 active:bg-slate-100 ${className}`;
 
   if (!title) {
     return null;

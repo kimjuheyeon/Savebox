@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getSupabaseAdminClient } from '@/lib/supabase/server';
 
 const DOMAIN_SOURCE_MAP = [
   { pattern: /instagram\.com/i, source: 'Instagram', fallbackTitle: 'Instagram 게시물' },
@@ -104,6 +105,65 @@ export async function POST(request) {
         thumbnailUrl = new URL(thumbnailUrl, parsedUrl.origin).href;
       } catch {
         thumbnailUrl = null;
+      }
+    }
+
+    // og:image를 Supabase Storage에 프록시 업로드
+    if (thumbnailUrl) {
+      try {
+        const imgController = new AbortController();
+        const imgTimeout = setTimeout(() => imgController.abort(), 5000);
+
+        const imgResponse = await fetch(thumbnailUrl, {
+          signal: imgController.signal,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; SaveBox/1.0; +https://savebox.app)',
+            'Accept': 'image/*',
+          },
+          redirect: 'follow',
+        });
+        clearTimeout(imgTimeout);
+
+        if (imgResponse.ok) {
+          const contentLength = imgResponse.headers.get('content-length');
+          const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+
+          if (!contentLength || parseInt(contentLength, 10) <= MAX_SIZE) {
+            const buffer = await imgResponse.arrayBuffer();
+
+            if (buffer.byteLength <= MAX_SIZE) {
+              const contentType = imgResponse.headers.get('content-type') || 'image/jpeg';
+              const extMap = {
+                'image/jpeg': 'jpg',
+                'image/png': 'png',
+                'image/webp': 'webp',
+                'image/gif': 'gif',
+              };
+              const ext = extMap[contentType.split(';')[0].trim()] || 'jpg';
+              const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+              const filePath = `thumbnails/${fileName}`;
+
+              const supabase = getSupabaseAdminClient();
+              const { error: uploadError } = await supabase.storage
+                .from('thumbnails')
+                .upload(filePath, Buffer.from(buffer), {
+                  contentType: contentType.split(';')[0].trim(),
+                  upsert: false,
+                });
+
+              if (!uploadError) {
+                const { data: publicData } = supabase.storage
+                  .from('thumbnails')
+                  .getPublicUrl(filePath);
+                if (publicData?.publicUrl) {
+                  thumbnailUrl = publicData.publicUrl;
+                }
+              }
+            }
+          }
+        }
+      } catch {
+        // 이미지 프록시 실패 시 원본 og:image URL 유지
       }
     }
 

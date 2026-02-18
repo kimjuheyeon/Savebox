@@ -17,6 +17,7 @@ import PageHeader from '@/components/PageHeader';
 import { ICON_BUTTON_BASE_CLASS, ICON_BUTTON_ICON_SIZE, ICON_BUTTON_SIZE_CLASS } from '@/lib/iconUI';
 import ActionSnackbar from '@/components/ActionSnackbar';
 import { COLOR_TAGS, SNS_SOURCES, getSourceMeta, getInitial, formatKoreanDate } from '@/lib/prototypeData';
+import { Button } from '@/components/ui/button';
 import { fetchContent, fetchCollections, updateContent, deleteContent } from '@/lib/api';
 
 export default function ContentDetailPage({ params }) {
@@ -107,7 +108,7 @@ export default function ContentDetailPage({ params }) {
       <main className="mx-auto w-full max-w-[440px] px-4 py-10">
         <h1 className="text-xl font-bold text-slate-900">콘텐츠를 찾을 수 없어요</h1>
         <p className="mt-2 text-sm text-slate-500">ID가 존재하지 않거나 삭제된 항목입니다.</p>
-        <Link href="/content" className="mt-4 inline-block rounded-[8px] border border-slate-200 px-4 py-2">
+        <Link href="/content" className="mt-4 inline-block rounded-[8px] border border-slate-200 px-4 py-2 transition hover:bg-slate-50 active:bg-slate-100">
           목록으로 돌아가기
         </Link>
       </main>
@@ -200,7 +201,7 @@ export default function ContentDetailPage({ params }) {
           <>
             <button
               onClick={handleShare}
-              className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-[8px] border border-slate-200`}
+              className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-[8px] border border-slate-200 transition hover:bg-slate-50 active:bg-slate-100`}
               aria-label="공유"
             >
               <Share2 size={ICON_BUTTON_ICON_SIZE} />
@@ -208,7 +209,7 @@ export default function ContentDetailPage({ params }) {
             <div className="relative" ref={actionMenuRef}>
               <button
                 onClick={() => setActionMenuOpen((prev) => !prev)}
-                className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-[8px] border border-slate-200`}
+                className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-[8px] border border-slate-200 transition hover:bg-slate-50 active:bg-slate-100`}
                 aria-label="더보기"
               >
                 <MoreHorizontal size={ICON_BUTTON_ICON_SIZE} />
@@ -225,7 +226,7 @@ export default function ContentDetailPage({ params }) {
                       openEditorSheet();
                     }}
                     type="button"
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-slate-700 transition hover:bg-slate-50 active:bg-slate-100"
                   >
                     <PencilLine size={12} />
                     수정
@@ -237,7 +238,7 @@ export default function ContentDetailPage({ params }) {
                       handleDelete();
                     }}
                     type="button"
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-rose-600 transition hover:bg-rose-50 active:bg-rose-100"
                   >
                     <Trash2 size={12} />
                     삭제
@@ -254,8 +255,13 @@ export default function ContentDetailPage({ params }) {
           {content.thumbnail_url ? (
             <img src={content.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
           ) : (
-            <div className="grid h-full w-full place-items-center bg-slate-200 text-5xl font-bold text-slate-600">
-              {getInitial(safeTitle)}
+            <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-slate-100 p-6">
+              {sourceMeta.iconSrc ? (
+                <img src={sourceMeta.iconSrc} alt={safeSource} className="h-12 w-12 object-contain opacity-60" />
+              ) : (
+                <span className="text-4xl font-black text-slate-400">{safeSource.charAt(0)}</span>
+              )}
+              <p className="line-clamp-2 text-center text-sm font-medium text-slate-500">{safeTitle}</p>
             </div>
           )}
         </div>
@@ -301,7 +307,7 @@ export default function ContentDetailPage({ params }) {
             <Link
               href={content.url || '#'}
               target="_blank"
-              className="flex w-full items-center justify-center gap-2 rounded-[8px] bg-indigo-600 px-4 py-3 font-semibold text-white"
+              className="flex w-full items-center justify-center gap-2 rounded-[8px] bg-indigo-600 px-4 py-3 font-semibold text-white transition hover:bg-indigo-700 active:bg-indigo-800"
             >
               <ExternalLink size={16} />
               원본 링크 열기
@@ -331,18 +337,12 @@ export default function ContentDetailPage({ params }) {
               <div className="mb-4 flex items-center justify-between">
                 <button
                   onClick={closeEditor}
-                  className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-[8px] text-slate-500`}
+                  className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-[8px] text-slate-500 transition hover:bg-slate-100 active:bg-slate-200`}
                 >
                   <X size={ICON_BUTTON_ICON_SIZE} />
                 </button>
                 <h2 className="text-sm font-bold">콘텐츠 수정</h2>
-                <button
-                  onClick={handleSave}
-                  disabled={!draftIsDirty || saving}
-                  className="rounded-[8px] bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white disabled:bg-indigo-200"
-                >
-                  {saving ? '저장중...' : '저장'}
-                </button>
+                <div className="w-9" />
               </div>
 
               <div className="space-y-3">
@@ -403,13 +403,13 @@ export default function ContentDetailPage({ params }) {
                 </label>
               </div>
 
-              <button
-                type="button"
-                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-[8px] border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-700"
+              <Button
+                onClick={handleSave}
+                disabled={!draftIsDirty || saving}
+                className="mt-4 w-full bg-indigo-600 py-3 text-sm font-bold text-white hover:bg-indigo-700 active:bg-indigo-800 disabled:bg-indigo-200"
               >
-                <AlertTriangle size={12} />
-                명시적 저장 구조: 변경사항은 저장 버튼을 눌러야 반영돼요
-              </button>
+                {saving ? '저장중...' : '저장'}
+              </Button>
             </div>
           </div>
         </>

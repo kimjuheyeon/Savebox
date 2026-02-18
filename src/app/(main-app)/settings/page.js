@@ -3,11 +3,11 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, LogOut, Sparkles, Trash2 } from 'lucide-react';
+import { AlertTriangle, ChevronRight, LogOut, Sparkles, Trash2 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import ActionSnackbar from '@/components/ActionSnackbar';
 import { getSupabaseBrowserClientSafe } from '@/lib/supabase/client';
-import { fetchContents, fetchCollections } from '@/lib/api';
+import { fetchContents, fetchCollections, deleteAllContents } from '@/lib/api';
 
 const STORAGE_LIMIT = 20;
 const SOCIAL_WARNING_THRESHOLD = 15;
@@ -349,6 +349,23 @@ export default function SettingsPage() {
     }
   };
 
+  const [deleteAllStep, setDeleteAllStep] = useState(0); // 0: hidden, 1: first confirm, 2: final confirm
+
+  const handleDeleteAllContents = async () => {
+    setIsBusy('delete-all');
+    try {
+      await deleteAllContents();
+      setMemberSavedCount(0);
+      setMemberSavedThisMonth(0);
+      showToast('모든 콘텐츠가 삭제되었습니다.');
+    } catch {
+      showToast('콘텐츠 삭제에 실패했어요.');
+    } finally {
+      setIsBusy('');
+      setDeleteAllStep(0);
+    }
+  };
+
   const accountRowsByState = () => {
     if (authState.type === 'guest') {
       const socialSignupRows = activeSocialProviders.map((provider) => {
@@ -360,7 +377,7 @@ export default function SettingsPage() {
             key={`signup-social-${provider}`}
             onClick={() => handleSocialSignIn(provider)}
             disabled={Boolean(isBusy)}
-            className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7]"
+            className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7] active:bg-[#E4E9F0] disabled:opacity-50 disabled:pointer-events-none"
           >
             <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#1A2233]">
               <span className={`grid h-8 w-8 place-items-center rounded-[8px] ${config.chipClass}`}>{config.badge}</span>
@@ -375,7 +392,7 @@ export default function SettingsPage() {
         <>
           <Link
             href="/auth/login"
-            className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7]"
+            className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7] active:bg-[#E4E9F0] disabled:opacity-50 disabled:pointer-events-none"
           >
             <span className="text-sm font-semibold text-[#1A2233]">로그인</span>
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#8896A8]">
@@ -385,7 +402,7 @@ export default function SettingsPage() {
           </Link>
           <Link
             href="/auth"
-            className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7]"
+            className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7] active:bg-[#E4E9F0] disabled:opacity-50 disabled:pointer-events-none"
           >
             <span className="text-sm font-semibold text-[#1A2233]">회원가입</span>
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#8896A8]">
@@ -407,7 +424,7 @@ export default function SettingsPage() {
           </div>
           <Link
             href="/collections"
-            className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7]"
+            className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7] active:bg-[#E4E9F0] disabled:opacity-50 disabled:pointer-events-none"
           >
             <span className="text-sm font-semibold text-[#1A2233]">저장 설정</span>
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#8896A8]">
@@ -435,7 +452,7 @@ export default function SettingsPage() {
         </div>
         <Link
           href="/collections"
-          className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7]"
+          className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7] active:bg-[#E4E9F0] disabled:opacity-50 disabled:pointer-events-none"
         >
           <span className="text-sm font-semibold text-[#1A2233]">저장 설정</span>
           <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#8896A8]">
@@ -469,7 +486,7 @@ export default function SettingsPage() {
                 type="button"
                 onClick={() => handleSocialLink(provider)}
                 disabled={Boolean(isBusy)}
-                className="rounded-[8px] border border-[#E4E9F0] px-2 py-1 text-xs font-semibold text-[#4A6FA5]"
+                className="rounded-[8px] border border-[#E4E9F0] px-2 py-1 text-xs font-semibold text-[#4A6FA5] transition hover:bg-[#ECF2FC] active:bg-[#D9E4F5] disabled:opacity-50 disabled:pointer-events-none"
               >
                 연동하기
               </button>
@@ -583,13 +600,33 @@ export default function SettingsPage() {
 
           {authState.type !== 'guest' ? (
             <section className="px-4">
+              <h2 className="mb-2 px-2 text-xs font-semibold text-[#8896A8]">데이터 관리</h2>
+              <div className="overflow-hidden rounded-[14px] border border-[#E4E9F0] bg-white">
+                <button
+                  type="button"
+                  onClick={() => setDeleteAllStep(1)}
+                  disabled={Boolean(isBusy)}
+                  className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7] active:bg-[#E4E9F0] disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#E05252]">
+                    <Trash2 size={16} />
+                    모든 콘텐츠 삭제
+                  </span>
+                  <ChevronRight size={16} className="text-[#8896A8]" />
+                </button>
+              </div>
+            </section>
+          ) : null}
+
+          {authState.type !== 'guest' ? (
+            <section className="mt-4 px-4">
               <h2 className="mb-2 px-2 text-xs font-semibold text-[#8896A8]">안전</h2>
               <div className="overflow-hidden rounded-[14px] border border-[#E4E9F0] bg-white">
                 <button
                   type="button"
                   onClick={handleLogout}
                   disabled={Boolean(isBusy)}
-                  className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7]"
+                  className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7] active:bg-[#E4E9F0] disabled:opacity-50 disabled:pointer-events-none"
                 >
                   <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#1A2233]">
                     <LogOut size={16} />
@@ -603,7 +640,7 @@ export default function SettingsPage() {
                     type="button"
                     onClick={handleDeleteAccount}
                     disabled={Boolean(isBusy)}
-                    className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7]"
+                    className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#F0F2F7] active:bg-[#E4E9F0] disabled:opacity-50 disabled:pointer-events-none"
                   >
                     <span className="inline-flex items-center gap-2 text-sm font-semibold" style={{ color: '#E05252' }}>
                       <Trash2 size={16} />
@@ -616,6 +653,67 @@ export default function SettingsPage() {
             </section>
           ) : null}
         </>
+      )}
+
+      {deleteAllStep > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6" onClick={() => setDeleteAllStep(0)}>
+          <div className="w-full max-w-[340px] rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            {deleteAllStep === 1 ? (
+              <>
+                <div className="mb-1 flex items-center gap-2 text-[#E05252]">
+                  <Trash2 size={20} />
+                  <h3 className="text-base font-bold">모든 콘텐츠 삭제</h3>
+                </div>
+                <p className="mt-2 text-sm text-[#5A6777]">
+                  저장된 모든 콘텐츠가 영구적으로 삭제됩니다.<br />이 작업은 되돌릴 수 없어요.
+                </p>
+                <div className="mt-5 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setDeleteAllStep(0)}
+                    className="flex-1 rounded-xl border border-[#E4E9F0] py-2.5 text-sm font-semibold text-[#5A6777] transition hover:bg-[#F0F2F7] active:bg-[#E4E9F0] disabled:opacity-50 disabled:pointer-events-none"
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteAllStep(2)}
+                    className="flex-1 rounded-xl bg-[#E05252] py-2.5 text-sm font-semibold text-white transition hover:bg-[#C94444] active:bg-[#B33A3A]"
+                  >
+                    삭제할게요
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="mb-1 flex items-center gap-2 text-[#E05252]">
+                  <AlertTriangle size={20} />
+                  <h3 className="text-base font-bold">정말 삭제하시겠어요?</h3>
+                </div>
+                <p className="mt-2 text-sm text-[#5A6777]">
+                  삭제하면 복구할 수 없습니다.<br />정말로 모든 콘텐츠를 삭제할까요?
+                </p>
+                <div className="mt-5 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setDeleteAllStep(0)}
+                    className="flex-1 rounded-xl border border-[#E4E9F0] py-2.5 text-sm font-semibold text-[#5A6777] transition hover:bg-[#F0F2F7] active:bg-[#E4E9F0] disabled:opacity-50 disabled:pointer-events-none"
+                  >
+                    아니요
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDeleteAllContents}
+                    disabled={isBusy === 'delete-all'}
+                    className="flex-1 rounded-xl bg-[#E05252] py-2.5 text-sm font-semibold text-white transition hover:bg-[#C94444] disabled:opacity-50"
+                  >
+                    {isBusy === 'delete-all' ? '삭제 중...' : '네, 모두 삭제'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       )}
 
       <ActionSnackbar

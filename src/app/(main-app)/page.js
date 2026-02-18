@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Search } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import ListItem from '@/components/ListItem';
-import { getInitial } from '@/lib/prototypeData';
+import { getInitial, getSourceMeta } from '@/lib/prototypeData';
 import { fetchContents, fetchCollections } from '@/lib/api';
 import { ICON_BUTTON_BASE_CLASS, ICON_BUTTON_ICON_SIZE, ICON_BUTTON_SIZE_CLASS } from '@/lib/iconUI';
 
@@ -53,7 +53,7 @@ export default function MainDashboardPage() {
         rightContent={
           <Link
             href="/search"
-            className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-[8px] bg-slate-900 text-white`}
+            className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-[8px] bg-slate-900 text-white transition hover:bg-slate-800 active:bg-slate-700`}
             aria-label="검색"
           >
             <Search size={ICON_BUTTON_ICON_SIZE} />
@@ -85,8 +85,13 @@ export default function MainDashboardPage() {
                 {item.thumbnail_url ? (
                   <img src={item.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-slate-500">
-                    {getInitial(item.title)}
+                  <div className="flex h-full w-full flex-col items-center justify-center gap-1.5 p-2">
+                    {(() => { const s = getSourceMeta(item.source || 'Other'); return s.iconSrc ? (
+                      <img src={s.iconSrc} alt={item.source} className="h-8 w-8 object-contain opacity-60" />
+                    ) : (
+                      <span className="text-2xl font-black text-slate-400">{(item.source || 'S').charAt(0)}</span>
+                    ); })()}
+                    <p className="line-clamp-2 text-center text-[10px] font-medium text-slate-500">{item.title}</p>
                   </div>
                 )}
               </div>

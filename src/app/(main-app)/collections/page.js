@@ -6,6 +6,7 @@ import PageHeader from '@/components/PageHeader';
 import ListItem from '@/components/ListItem';
 import { ICON_BUTTON_BASE_CLASS, ICON_BUTTON_ICON_SIZE, ICON_BUTTON_SIZE_CLASS } from '@/lib/iconUI';
 import { COLOR_TAGS } from '@/lib/prototypeData';
+import { Button } from '@/components/ui/button';
 import { fetchCollections, createCollection, deleteCollections } from '@/lib/api';
 
 const COLOR_CHOICES = ['Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Gray'];
@@ -157,11 +158,11 @@ export default function CollectionsPage() {
           <>
             <button
               onClick={toggleEditing}
-              className="rounded-[8px] border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+              className="rounded-[8px] border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 active:bg-slate-100"
             >
               {editing ? '완료' : '편집'}
             </button>
-            <button className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-[8px] border border-slate-200 text-slate-600 hover:bg-slate-50`}>
+            <button className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-[8px] border border-slate-200 text-slate-600 transition hover:bg-slate-50 active:bg-slate-100`}>
               <Search size={ICON_BUTTON_ICON_SIZE} />
             </button>
           </>
@@ -188,7 +189,7 @@ export default function CollectionsPage() {
           <p className="mt-1 text-xs text-slate-500">첫 컬렉션을 만들어 콘텐츠를 정리해 보세요.</p>
           <button
             onClick={() => setCreating(true)}
-            className="mt-4 inline-flex items-center gap-2 rounded-[8px] bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"
+            className="mt-4 inline-flex items-center gap-2 rounded-[8px] bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 active:bg-indigo-800"
           >
             <Plus size={14} />
             첫 컬렉션 만들기
@@ -202,7 +203,7 @@ export default function CollectionsPage() {
           <button
             onClick={handleDelete}
             disabled={selectedIds.length === 0}
-            className="rounded-[8px] bg-rose-500 px-3 py-2 text-xs font-semibold text-white disabled:bg-rose-200"
+            className="rounded-[8px] bg-rose-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-600 active:bg-rose-700 disabled:bg-rose-200 disabled:pointer-events-none"
           >
             <span className="inline-flex items-center gap-1">
               <Trash2 size={12} />
@@ -215,7 +216,7 @@ export default function CollectionsPage() {
       {!editing && (
         <button
           onClick={() => setCreating((prev) => !prev)}
-          className="fixed z-30 inline-flex items-center gap-2 rounded-[8px] border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-semibold text-indigo-700 shadow-lg min-h-[48px]"
+          className="fixed z-30 inline-flex items-center gap-2 rounded-[8px] border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-semibold text-indigo-700 shadow-lg min-h-[48px] transition hover:bg-indigo-100 active:bg-indigo-200"
           style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))', right: 'max(1rem, calc((100vw - 440px) / 2 + 1rem))' }}
         >
           <Pencil size={16} /> 새 컬렉션 만들기
@@ -223,61 +224,73 @@ export default function CollectionsPage() {
       )}
 
       {creating && (
-        <section className="mx-4 mt-4 space-y-3 rounded-[8px] border border-indigo-100 bg-white p-4">
-          <h3 className="text-sm font-bold text-slate-900">새 컬렉션 생성</h3>
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-slate-700">컬렉션명 (최대 30자)</label>
-            <input
-              value={newName}
-              maxLength={30}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="예: UI 영감"
-              className="w-full rounded-[8px] border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
-            />
-            {newName.trim() && isDuplicate(newName.trim()) && (
-              <p className="mt-1 text-xs text-rose-600">이미 같은 이름의 컬렉션이 있습니다.</p>
-            )}
-          </div>
-          <div>
-            <p className="mb-2 text-xs font-semibold text-slate-700">컬러 태그</p>
-            <div className="flex flex-wrap gap-2">
-              {COLOR_CHOICES.map((color) => {
-                const colorMeta = COLOR_TAGS[color];
-                const active = color === newColor;
-                return (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => setNewColor(color)}
-                    className={`rounded-[8px] border px-3 py-1 text-xs font-semibold ${
-                      active ? 'border-indigo-400 text-indigo-700' : 'border-slate-200 text-slate-600'
-                    } ${colorMeta.badge}`}
-                  >
-                    {color}
-                  </button>
-                );
-              })}
+        <>
+          <div onClick={() => { setCreating(false); setNewName(''); setNewColor('Blue'); }} className="fixed inset-0 z-30 bg-black/45" />
+          <div className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-[440px]">
+            <div
+              className="rounded-t-2xl border border-slate-200 bg-white p-4 shadow-2xl"
+              style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <button
+                  onClick={() => { setCreating(false); setNewName(''); setNewColor('Blue'); }}
+                  className="rounded-[8px] p-2 text-slate-500 transition hover:bg-slate-100 active:bg-slate-200"
+                >
+                  <X size={20} />
+                </button>
+                <h2 className="text-sm font-bold">새 컬렉션 생성</h2>
+                <div className="w-9" />
+              </div>
+
+              <div className="space-y-3">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold text-slate-600">컬렉션명 (최대 30자)</span>
+                  <input
+                    value={newName}
+                    maxLength={30}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder="예: UI 영감"
+                    autoFocus
+                    className="w-full rounded-[8px] border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
+                  />
+                  {newName.trim() && isDuplicate(newName.trim()) && (
+                    <p className="mt-1 text-xs text-rose-600">이미 같은 이름의 컬렉션이 있습니다.</p>
+                  )}
+                </label>
+
+                <div>
+                  <p className="mb-2 text-xs font-semibold text-slate-600">컬러 태그</p>
+                  <div className="flex flex-wrap gap-2">
+                    {COLOR_CHOICES.map((color) => {
+                      const colorMeta = COLOR_TAGS[color];
+                      const active = color === newColor;
+                      return (
+                        <button
+                          key={color}
+                          type="button"
+                          onClick={() => setNewColor(color)}
+                          className={`rounded-[8px] border px-3 py-1 text-xs font-semibold transition ${
+                            active ? 'border-indigo-400 text-indigo-700 active:bg-indigo-100' : 'border-slate-200 text-slate-600 hover:bg-slate-50 active:bg-slate-100'
+                          } ${colorMeta.badge}`}
+                        >
+                          {color}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                onClick={handleCreate}
+                disabled={!newName.trim() || isDuplicate(newName.trim())}
+                className="mt-4 w-full bg-indigo-600 py-3 text-sm font-bold text-white hover:bg-indigo-700 active:bg-indigo-800 disabled:bg-indigo-200"
+              >
+                생성
+              </Button>
             </div>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setCreating(false)}
-              className="flex-1 rounded-[8px] border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700"
-            >
-              <span className="inline-flex items-center gap-1">
-                <X size={12} />
-                취소
-              </span>
-            </button>
-            <button
-              onClick={handleCreate}
-              disabled={!newName.trim() || isDuplicate(newName.trim())}
-              className="flex-1 rounded-[8px] bg-indigo-600 px-3 py-2 text-sm font-semibold text-white disabled:bg-indigo-300"
-            >
-              생성
-            </button>
-          </div>
-        </section>
+        </>
       )}
     </main>
   );

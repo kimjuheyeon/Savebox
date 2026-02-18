@@ -8,7 +8,7 @@ export default function PageHeader({ title, backHref, rightContent, children }) 
         {backHref ? (
           <Link
             href={backHref}
-            className="inline-flex items-center gap-2 rounded-[8px] px-1 py-1 text-sm font-semibold text-slate-700 hover:text-slate-900"
+            className="inline-flex items-center gap-2 rounded-[8px] px-1 py-1 text-sm font-semibold text-slate-700 transition hover:text-slate-900 active:bg-slate-100"
           >
             <ArrowLeft size={18} />
             <span className="text-lg font-bold text-slate-900">{title}</span>

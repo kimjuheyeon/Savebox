@@ -172,3 +172,16 @@ export async function deleteContent(id) {
 
   if (error) throw error;
 }
+
+export async function deleteAllContents() {
+  const userId = await getUserId();
+  if (!userId) throw new Error('로그인이 필요합니다.');
+
+  const supabase = getClient();
+  const { error } = await supabase
+    .from('contents')
+    .delete()
+    .eq('user_id', userId);
+
+  if (error) throw error;
+}

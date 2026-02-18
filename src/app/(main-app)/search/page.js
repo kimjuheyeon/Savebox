@@ -89,7 +89,7 @@ export default function SearchPage() {
               <button
                 type="button"
                 onClick={() => setQuery('')}
-                className={`absolute right-2 top-1/2 ${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} -translate-y-1/2 rounded-[8px] text-slate-400`}
+                className={`absolute right-2 top-1/2 ${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} -translate-y-1/2 rounded-[8px] text-slate-400 transition hover:text-slate-600 active:text-slate-800`}
                 aria-label="입력값 지우기"
               >
                 <X size={ICON_BUTTON_ICON_SIZE} />
@@ -98,7 +98,7 @@ export default function SearchPage() {
           </div>
           <button
             onClick={() => applySearch(query)}
-            className="rounded-[8px] bg-indigo-600 px-3 py-2 text-xs font-semibold text-white"
+            className="rounded-[8px] bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700 active:bg-indigo-800"
           >
             검색
           </button>
@@ -125,7 +125,7 @@ export default function SearchPage() {
                     <button
                       key={item}
                       onClick={() => applySearch(item)}
-                      className="inline-flex items-center gap-2 rounded-[8px] border border-slate-200 px-3 py-1.5 text-xs"
+                      className="inline-flex items-center gap-2 rounded-[8px] border border-slate-200 px-3 py-1.5 text-xs transition hover:bg-slate-50 active:bg-slate-100"
                     >
                       <span>{item}</span>
                       <span
@@ -153,7 +153,7 @@ export default function SearchPage() {
                   <button
                     key={item}
                     onClick={() => applySearch(item)}
-                    className="rounded-[8px] bg-slate-900 px-3 py-1.5 text-xs text-white"
+                    className="rounded-[8px] bg-slate-900 px-3 py-1.5 text-xs text-white transition hover:bg-slate-800 active:bg-slate-700"
                   >
                     {item}
                   </button>

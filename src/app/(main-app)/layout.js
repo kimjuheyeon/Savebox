@@ -41,7 +41,7 @@ export default function MainAppLayout({ children }) {
                   key={nav.href}
                   href={nav.href}
                   className={`flex flex-col items-center justify-center gap-1 rounded-[8px] px-2 py-2 min-h-[44px] transition ${
-                    active ? 'text-indigo-600' : 'text-slate-500'
+                    active ? 'text-indigo-600' : 'text-slate-500 hover:bg-slate-50 active:bg-slate-100'
                   }`}
                   aria-current={active ? 'page' : undefined}
                 >
