@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LayoutGrid, Loader2, List, MoreHorizontal, PencilLine, Plus, Search, Trash2, X } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
-import { COLOR_TAGS, SNS_SOURCES, getSourceMeta, shortDate } from '@/lib/prototypeData';
+import { SNS_SOURCES, getSourceMeta, shortDate } from '@/lib/prototypeData';
 import { fetchContents, fetchCollections, createContent, deleteContent } from '@/lib/api';
 
 const SORT_OPTIONS = [
@@ -138,7 +138,10 @@ function ContentPageInner() {
       });
       if (!res.ok) return;
       const meta = await res.json();
-      if (meta.title && !newTitle) setNewTitle(meta.title);
+      // og:description이 있고, og:title이 "@username on Platform" 패턴이면 description을 우선 사용
+      const isGenericTitle = /^.{0,50}\(@[\w.]+\)\s+on\s+/i.test(meta.title || '');
+      const betterTitle = (isGenericTitle && meta.description) ? meta.description.slice(0, 80) : meta.title;
+      if (betterTitle && !newTitle) setNewTitle(betterTitle);
       if (meta.source) setNewSource(meta.source);
       if (meta.thumbnailUrl) setNewThumbnail(meta.thumbnailUrl);
       if (meta.url) setNewUrl(meta.url);
@@ -288,7 +291,6 @@ function ContentPageInner() {
             const title = item.title || '제목 없음';
             const sourceName = item.source || 'Other';
             const source = getSourceMeta(sourceName);
-            const color = COLOR_TAGS[item.color_tag] || COLOR_TAGS.Gray;
             return (
               <div
                 key={item.id}
@@ -299,26 +301,27 @@ function ContentPageInner() {
                     {item.thumbnail_url ? (
                       <img src={item.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center text-3xl font-bold text-slate-500">
-                        {title.charAt(0)}
+                      <div className={`flex h-full w-full flex-col items-center justify-center gap-2 p-3 ${source.mark} bg-opacity-10`}>
+                        {source.iconSrc ? (
+                          <img src={source.iconSrc} alt={sourceName} className="h-8 w-8 object-contain opacity-60" />
+                        ) : (
+                          <span className="text-2xl font-black text-slate-400">{sourceName.charAt(0)}</span>
+                        )}
+                        <p className="line-clamp-3 text-center text-xs font-medium text-slate-500">{title}</p>
                       </div>
                     )}
                   </div>
                   <div className="p-3">
                     <p className="line-clamp-2 text-sm font-semibold text-slate-900">{title}</p>
-                    <div className="mt-2 flex items-center justify-between">
-                      <p className={`rounded-full px-2 py-0.5 text-[10px] ${source.badge}`}>{sourceName}</p>
-                      <span className={`ml-2 h-2.5 w-2.5 rounded-full ${color.dot}`} aria-hidden />
+                    <div className="mt-2">
+                      <p className={`inline-block rounded-full px-2 py-0.5 text-[10px] ${source.badge}`}>{sourceName}</p>
                     </div>
                   </div>
                 </Link>
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setGridMenuId(gridMenuId === item.id ? null : item.id);
-                  }}
-                  className="absolute right-2 top-2 rounded-full bg-white/80 p-1.5 text-slate-600 shadow-sm backdrop-blur hover:bg-white"
+                  onClick={() => setGridMenuId(gridMenuId === item.id ? null : item.id)}
+                  className="absolute right-2 top-2 z-[5] rounded-full bg-white/80 p-1.5 text-slate-600 shadow-sm backdrop-blur hover:bg-white"
                   aria-label="더보기"
                 >
                   <MoreHorizontal size={16} />
@@ -326,7 +329,7 @@ function ContentPageInner() {
                 {gridMenuId === item.id && (
                   <div className="absolute right-2 top-10 z-10 w-32 rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
                     <Link
-                      href={`/content/${item.id}`}
+                      href={`/content/${item.id}?edit=true`}
                       className="flex w-full items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"
                     >
                       <PencilLine size={12} />
@@ -409,7 +412,7 @@ function ContentPageInner() {
                       placeholder="https://... 링크를 붙여넣으세요"
                       type="url"
                       autoFocus
-                      className="w-full rounded-[8px] border border-slate-300 px-3 py-2.5 text-sm pr-9"
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 pr-9"
                     />
                     {fetching && (
                       <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-indigo-500" />
@@ -418,14 +421,20 @@ function ContentPageInner() {
                 </label>
 
                 {fetching && (
-                  <div className="rounded-[8px] bg-indigo-50 px-3 py-2 text-xs text-indigo-600">
+                  <div className="rounded-xl bg-indigo-50 px-3 py-2 text-xs text-indigo-600">
                     메타데이터를 가져오는 중...
                   </div>
                 )}
 
                 {newThumbnail && (
-                  <div className="overflow-hidden rounded-[8px] border border-slate-200">
-                    <img src={newThumbnail} alt="미리보기" referrerPolicy="no-referrer" className="h-32 w-full object-cover" />
+                  <div className="overflow-hidden rounded-xl border border-slate-200">
+                    <img
+                      src={newThumbnail}
+                      alt="미리보기"
+                      referrerPolicy="no-referrer"
+                      className="h-32 w-full object-cover"
+                      onError={(e) => { e.target.parentElement.style.display = 'none'; setNewThumbnail(''); }}
+                    />
                   </div>
                 )}
 
@@ -436,9 +445,9 @@ function ContentPageInner() {
                   <input
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
-                    placeholder={fetching ? '자동으로 가져오는 중...' : '자동 입력됨 (수정 가능)'}
+                    placeholder={fetching ? '자동으로 가져오는 중...' : '저장할 콘텐츠의 제목을 입력하세요'}
                     maxLength={80}
-                    className="w-full rounded-[8px] border border-slate-300 px-3 py-2 text-sm"
+                    className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200"
                   />
                 </label>
 
@@ -449,7 +458,8 @@ function ContentPageInner() {
                   <select
                     value={newSource}
                     onChange={(e) => setNewSource(e.target.value)}
-                    className="w-full rounded-[8px] border border-slate-300 px-3 py-2 text-sm"
+                    className="h-11 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 pr-8 text-sm outline-none transition focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200"
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center' }}
                   >
                     {SNS_SOURCES.map((s) => (
                       <option key={s} value={s}>{s}</option>
@@ -462,7 +472,8 @@ function ContentPageInner() {
                   <select
                     value={newCollectionId}
                     onChange={(e) => setNewCollectionId(e.target.value)}
-                    className="w-full rounded-[8px] border border-slate-300 px-3 py-2 text-sm"
+                    className="h-11 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 pr-8 text-sm outline-none transition focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200"
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center' }}
                   >
                     <option value="">미분류</option>
                     {collections.filter((c) => !c.is_system).map((col) => (
@@ -478,7 +489,7 @@ function ContentPageInner() {
                     onChange={(e) => setNewMemo(e.target.value)}
                     placeholder="메모를 입력하세요"
                     maxLength={500}
-                    className="h-24 w-full resize-none rounded-[8px] border border-slate-300 px-3 py-2 text-sm"
+                    className="h-24 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200"
                   />
                 </label>
               </div>
@@ -495,7 +506,6 @@ function SwipeableListItem({ item, onDelete }) {
   const title = safeItem.title || '제목 없음';
   const sourceName = safeItem.source || 'Other';
   const source = getSourceMeta(sourceName);
-  const color = COLOR_TAGS[safeItem.color_tag] || COLOR_TAGS.Gray;
   const containerRef = useRef(null);
   const startXRef = useRef(0);
   const currentXRef = useRef(0);
@@ -569,9 +579,13 @@ function SwipeableListItem({ item, onDelete }) {
         <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-slate-100">
           {safeItem.thumbnail_url ? (
             <img src={safeItem.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+          ) : source.iconSrc ? (
+            <div className="grid h-full w-full place-items-center">
+              <img src={source.iconSrc} alt={sourceName} className="h-7 w-7 object-contain opacity-60" />
+            </div>
           ) : (
-            <div className="grid h-full w-full place-items-center text-lg font-bold text-slate-500">
-              {title.charAt(0)}
+            <div className="grid h-full w-full place-items-center text-lg font-black text-slate-400">
+              {sourceName.charAt(0)}
             </div>
           )}
         </div>
@@ -584,9 +598,8 @@ function SwipeableListItem({ item, onDelete }) {
           {safeItem.memo && <p className="mt-1 line-clamp-1 text-xs text-slate-400">{safeItem.memo}</p>}
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center">
           <span className={`rounded-full px-2 py-0.5 text-[10px] ${source.badge}`}>{sourceName}</span>
-          <span className={`h-2.5 w-2.5 rounded-full ${color.dot}`} aria-hidden />
         </div>
       </Link>
     </div>

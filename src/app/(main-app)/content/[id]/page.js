@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   CalendarDays,
   Share2,
@@ -21,6 +21,7 @@ import { fetchContent, fetchCollections, updateContent, deleteContent } from '@/
 
 export default function ContentDetailPage({ params }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const contentId = params?.id || '';
   const [content, setContent] = useState(null);
   const [collections, setCollections] = useState([]);
@@ -69,7 +70,10 @@ export default function ContentDetailPage({ params }) {
       memo: content.memo || '',
       collectionId: content.collection_id || '',
     });
-  }, [content]);
+    if (searchParams?.get('edit') === 'true') {
+      setOpenEditor(true);
+    }
+  }, [content, searchParams]);
 
   useEffect(() => {
     if (!snackbarMessage) return;

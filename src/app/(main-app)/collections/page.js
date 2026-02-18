@@ -40,8 +40,6 @@ export default function CollectionsPage() {
       collections.map((collection) => {
         const isSystem = collection.is_system;
         const count = collection.item_count || 0;
-        const color = COLOR_TAGS[collection.color_tag] || COLOR_TAGS.Blue;
-
         return {
           id: collection.id,
           leading: (
@@ -87,10 +85,7 @@ export default function CollectionsPage() {
           ),
           subtitle: collection.description,
           trailing: (
-            <div className="flex items-center gap-2">
-              <p className="text-xs font-semibold text-slate-700">{count}개</p>
-              <span className={`h-2.5 w-2.5 rounded-[8px] ${color.dot}`} aria-hidden />
-            </div>
+            <p className="text-xs font-semibold text-slate-700">{count}개</p>
           ),
           href: !editing ? `/content?collection=${collection.id}` : undefined,
         };
@@ -220,8 +215,8 @@ export default function CollectionsPage() {
       {!editing && (
         <button
           onClick={() => setCreating((prev) => !prev)}
-          className="fixed right-4 z-30 inline-flex items-center gap-2 rounded-[8px] border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-semibold text-indigo-700 shadow-lg min-h-[48px]"
-          style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))' }}
+          className="fixed z-30 inline-flex items-center gap-2 rounded-[8px] border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-semibold text-indigo-700 shadow-lg min-h-[48px]"
+          style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))', right: 'max(1rem, calc((100vw - 440px) / 2 + 1rem))' }}
         >
           <Pencil size={16} /> 새 컬렉션 만들기
         </button>

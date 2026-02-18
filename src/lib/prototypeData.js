@@ -37,7 +37,7 @@ export const SOURCE_META = {
   Threads: {
     badge: 'border border-cyan-200 bg-cyan-100 text-cyan-700',
     mark: 'bg-cyan-600',
-    iconSrc: null,
+    iconSrc: '/Image/thread.png',
   },
   Other: {
     badge: 'border border-gray-300 bg-gray-100 text-gray-700',

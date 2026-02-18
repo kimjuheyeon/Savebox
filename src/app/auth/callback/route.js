@@ -49,7 +49,7 @@ export async function GET(request) {
   if (exchangeError) {
     console.error('[auth/callback] exchangeCodeForSession 에러:', exchangeError.message);
     const dest = new URL('/auth/login', origin);
-    dest.searchParams.set('error', '로그인 처리에 실패했어요. 다시 시도해주세요.');
+    dest.searchParams.set('error', `로그인 처리 실패: ${exchangeError.message}`);
     return NextResponse.redirect(dest);
   }
 
