@@ -67,7 +67,7 @@ export default function CollectionsPage() {
                 </button>
               ) : null}
               <span
-                className={`grid h-12 w-12 place-items-center rounded-[8px] bg-[#1E1E1E] text-2xl ${isSystem ? 'grayscale' : ''}`}
+                className={`grid h-12 w-12 place-items-center rounded-[8px] bg-[#353535] text-2xl ${isSystem ? 'grayscale' : ''}`}
                 aria-hidden
               >
                 📁

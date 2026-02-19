@@ -23,9 +23,7 @@ export default function ActionSnackbar({
       <div
         className="mx-auto max-w-[440px] flex items-center justify-between gap-3 px-4 py-3.5 rounded-xl"
         style={{
-          backgroundColor: 'rgba(0, 0, 0, 0.85)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
+          backgroundColor: '#1E1E1E',
         }}
       >
         <div className="flex min-w-0 items-center gap-2.5">

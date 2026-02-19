@@ -6,11 +6,14 @@ import { useRouter } from 'next/navigation';
 import { AlertTriangle, ChevronRight, LogOut, Sparkles, Trash2 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import ActionSnackbar from '@/components/ActionSnackbar';
+import GoogleMaterialButton from '@/components/GoogleMaterialButton';
 import { getSupabaseBrowserClientSafe } from '@/lib/supabase/client';
-import { fetchContents, fetchCollections, deleteAllContents } from '@/lib/api';
+import { deleteAllContents } from '@/lib/api';
 
-const STORAGE_LIMIT = 20;
-const SOCIAL_WARNING_THRESHOLD = 15;
+const AUTH_STATES = {
+  anonymous: 'anonymous',
+  social: 'social',
+};
 
 const OAUTH_CONFLICT_MESSAGE_PATTERN = /(already.*exists|identity.*exists|provider.*already|already.*linked|email.*associated|different.*provider|이미.*다른|다른.*제공자)/i;
 const OAUTH_PROVIDER_DISABLED_PATTERN = /(provider.*not.*enabled|unsupported.*provider|provider.*disabled|지원.*되지|미활성화|비활성화)/i;
@@ -42,12 +45,17 @@ const ACTIVATED_SOCIAL_PROVIDERS = (() => {
   return normalized.length > 0 ? normalized : ['google'];
 })();
 
-const getProviderConfig = (provider) => AVAILABLE_PROVIDERS[provider] || null;
-
 const isProviderActive = (provider) => ACTIVATED_SOCIAL_PROVIDERS.includes(provider);
 
 const buildAuthCallbackUrl = (mode, provider) => {
-  const base = (process.env.NEXT_PUBLIC_SITE_URL || window.location.origin).replace(/\/$/, '');
+  if (typeof window === 'undefined') {
+    const fallbackBase = process.env.NEXT_PUBLIC_SITE_URL || '';
+    if (fallbackBase) return `${fallbackBase.replace(/\/$/, '')}/auth/callback?mode=${mode}&provider=${provider}`;
+    return '/auth/callback?mode=' + mode + '&provider=' + provider;
+  }
+
+  const explicitBase = process.env.NEXT_PUBLIC_SITE_URL;
+  const base = (explicitBase || window.location.origin).replace(/\/$/, '');
   return `${base}/auth/callback?mode=${mode}&provider=${provider}`;
 };
 
@@ -63,39 +71,25 @@ const normalizeAuthState = (sessionUser) => {
   ];
 
   providers.forEach((provider) => {
-    if (provider === 'google' || provider === 'email') {
+    if (provider === 'google') {
       connected.add(provider);
     }
   });
 
-  const primary = sessionUser?.app_metadata?.provider;
-  if (primary === 'google') {
-    return { type: 'social', provider: primary, email: sessionUser?.email || '이메일 없음' };
-  }
-
-  if (connected.has('email')) {
-    return { type: 'member', email: sessionUser?.email || '이메일 없음' };
-  }
-
   if (connected.has('google')) {
-    return {
-      type: 'social',
-      provider: 'google',
-      email: sessionUser?.email || '이메일 없음',
-    };
+    return { type: AUTH_STATES.social, provider: 'google', email: sessionUser?.email || '이메일 없음' };
   }
 
-  return { type: 'guest', email: '게스트 모드' };
+  return { type: AUTH_STATES.anonymous, email: '비로그인 상태' };
 };
 
 export default function SettingsPage() {
   const router = useRouter();
-  const [authState, setAuthState] = useState({ type: 'guest', email: '게스트 모드' });
+  const [authState, setAuthState] = useState({ type: AUTH_STATES.anonymous, email: '비로그인 상태' });
   const [sessionUser, setSessionUser] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isBusy, setIsBusy] = useState('');
   const [toastMessage, setToastMessage] = useState('');
-  const [guestSavedCount, setGuestSavedCount] = useState(15);
 
   const connectedSocialProviders = useMemo(() => {
     const providers = new Set();
@@ -115,44 +109,12 @@ export default function SettingsPage() {
     return Array.from(providers);
   }, [sessionUser]);
 
-  const [memberSavedCount, setMemberSavedCount] = useState(0);
-  const [memberCollectionCount, setMemberCollectionCount] = useState(0);
-  const [memberSavedThisMonth, setMemberSavedThisMonth] = useState(0);
-
-  useEffect(() => {
-    if (authState.type === 'guest') return;
-    async function loadStats() {
-      try {
-        const [contentsResult, collections] = await Promise.all([
-          fetchContents({ limit: 1 }),
-          fetchCollections(),
-        ]);
-        setMemberSavedCount(contentsResult.total || 0);
-        setMemberCollectionCount(collections.filter((c) => !c.is_system).length);
-        setMemberSavedThisMonth(contentsResult.total || 0);
-      } catch {}
-    }
-    loadStats();
-  }, [authState.type]);
-
-  const guestUsageRatio = Math.min(1, Math.max(0, guestSavedCount / STORAGE_LIMIT));
-  const guestRemaining = Math.max(0, STORAGE_LIMIT - guestSavedCount);
-  const showGuestWarning = guestSavedCount >= SOCIAL_WARNING_THRESHOLD;
-
   const isProviderConnected = (provider) => connectedSocialProviders.includes(provider);
 
   const activeSocialProviders = ACTIVATED_SOCIAL_PROVIDERS;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
-    const storedGuest = window.localStorage.getItem('savebox-guest-saved-count');
-    if (storedGuest !== null) {
-      const parsedGuestCount = Number.parseInt(storedGuest, 10);
-      if (Number.isFinite(parsedGuestCount)) {
-        setGuestSavedCount(Math.max(0, Math.min(STORAGE_LIMIT, parsedGuestCount)));
-      }
-    }
 
     const pendingToast = window.sessionStorage.getItem('settings-toast');
     if (pendingToast) {
@@ -165,7 +127,7 @@ export default function SettingsPage() {
     const supabase = getSupabaseBrowserClientSafe();
 
     if (!supabase) {
-      setAuthState({ type: 'guest', email: '게스트 모드' });
+      setAuthState({ type: AUTH_STATES.anonymous, email: '비로그인 상태' });
       setSessionUser(null);
       setIsAuthLoading(false);
       return;
@@ -176,7 +138,7 @@ export default function SettingsPage() {
       try {
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
         if (sessionError || !sessionData?.session?.user) {
-          setAuthState({ type: 'guest', email: '게스트 모드' });
+          setAuthState({ type: AUTH_STATES.anonymous, email: '비로그인 상태' });
           setSessionUser(null);
           return;
         }
@@ -186,7 +148,7 @@ export default function SettingsPage() {
         setSessionUser(resolvedUser || null);
         setAuthState(normalizeAuthState(resolvedUser));
       } catch {
-        setAuthState({ type: 'guest', email: '게스트 모드' });
+        setAuthState({ type: AUTH_STATES.anonymous, email: '비로그인 상태' });
         setSessionUser(null);
       } finally {
         setIsAuthLoading(false);
@@ -218,6 +180,15 @@ export default function SettingsPage() {
     if (!message) return;
     setToastMessage(message);
   };
+
+  const renderGoogleButton = ({ onClick, disabled, loading, label }) => (
+    <GoogleMaterialButton
+      onClick={onClick}
+      disabled={disabled}
+      isLoading={loading}
+      label={label}
+          />
+  );
 
   const handleSocialSignIn = async (provider) => {
     if (!isProviderActive(provider)) {
@@ -251,11 +222,11 @@ export default function SettingsPage() {
           showToast('해당 소셜 로그인이 현재 비활성화되어 있습니다.');
           return;
         }
-        showToast('로그인에 실패했어요. 이메일로 가입해보세요.');
+        showToast('로그인에 실패했어요. Google로 다시 시도해주세요.');
         router.push('/auth');
       }
     } catch {
-      showToast('로그인에 실패했어요. 이메일로 가입해보세요.');
+      showToast('로그인에 실패했어요. Google로 다시 시도해주세요.');
       router.push('/auth');
     } finally {
       setIsBusy('');
@@ -306,7 +277,7 @@ export default function SettingsPage() {
 
       await fetch('/api/auth/logout', { method: 'POST' });
       setSessionUser(null);
-      setAuthState({ type: 'guest', email: '게스트 모드' });
+      setAuthState({ type: AUTH_STATES.anonymous, email: '비로그인 상태' });
       showToast('로그아웃되었습니다.');
       router.push('/auth/login');
     } catch {
@@ -338,7 +309,7 @@ export default function SettingsPage() {
 
       await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
       setSessionUser(null);
-      setAuthState({ type: 'guest', email: '게스트 모드' });
+      setAuthState({ type: AUTH_STATES.anonymous, email: '비로그인 상태' });
       showToast('계정이 삭제되었어요.');
       router.push('/auth');
     } catch {
@@ -354,8 +325,6 @@ export default function SettingsPage() {
     setIsBusy('delete-all');
     try {
       await deleteAllContents();
-      setMemberSavedCount(0);
-      setMemberSavedThisMonth(0);
       showToast('모든 콘텐츠가 삭제되었습니다.');
     } catch {
       showToast('콘텐츠 삭제에 실패했어요.');
@@ -366,55 +335,31 @@ export default function SettingsPage() {
   };
 
   const accountRowsByState = () => {
-    if (authState.type === 'guest') {
+    if (authState.type === AUTH_STATES.anonymous) {
       const socialSignupRows = activeSocialProviders.map((provider) => {
-        const config = getProviderConfig(provider) || { label: provider, badge: provider[0]?.toUpperCase(), chipClass: 'bg-[#1a2540] text-[#6d9fd6]' };
+        const isSigningIn = isBusy === `signin-${provider}`;
+        const loadingLabel = isSigningIn ? '처리 중...' : 'Sign in with Google';
 
         return (
-          <button
-            type="button"
-            key={`signup-social-${provider}`}
-            onClick={() => handleSocialSignIn(provider)}
-            disabled={Boolean(isBusy)}
-            className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#1f2a42] active:bg-[#2a3652] disabled:opacity-50 disabled:pointer-events-none"
-          >
-            <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-100">
-              <span className={`grid h-8 w-8 place-items-center rounded-[8px] ${config.chipClass}`}>{config.badge}</span>
-              {config.label}로 시작하기
-            </span>
-            <ChevronRight size={16} className="text-[#616161]" />
-          </button>
+          <div key={`signup-social-${provider}`}>
+            {renderGoogleButton({
+              onClick: () => handleSocialSignIn(provider),
+              disabled: Boolean(isBusy),
+              loading: isSigningIn,
+              label: loadingLabel,
+            })}
+          </div>
         );
       });
 
       return (
         <>
-          <Link
-            href="/auth/login"
-            className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#1f2a42] active:bg-[#2a3652] disabled:opacity-50 disabled:pointer-events-none"
-          >
-            <span className="text-sm font-semibold text-slate-100">로그인</span>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#616161]">
-              기존 계정 진입
-              <ChevronRight size={16} />
-            </span>
-          </Link>
-          <Link
-            href="/auth"
-            className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#1f2a42] active:bg-[#2a3652] disabled:opacity-50 disabled:pointer-events-none"
-          >
-            <span className="text-sm font-semibold text-slate-100">회원가입</span>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#616161]">
-              AUTH-01 이동
-              <ChevronRight size={16} />
-            </span>
-          </Link>
           {socialSignupRows}
         </>
       );
     }
 
-    if (authState.type === 'social') {
+    if (authState.type === AUTH_STATES.social) {
       return (
         <>
           <div className="rounded-[8px] px-3 py-3">
@@ -435,32 +380,7 @@ export default function SettingsPage() {
       );
     }
 
-    return (
-      <>
-        <div className="rounded-[8px] px-3 py-3">
-          <p className="text-sm font-semibold text-slate-100">계정 정보</p>
-          <p className="mt-1 text-xs text-[#616161]">{authState.email}</p>
-        </div>
-        <div className="rounded-[8px] px-3 py-3">
-          <p className="text-sm font-semibold text-slate-100">이메일 변경</p>
-          <p className="mt-1 text-xs text-[#616161]">현재 화면은 데모 플로우입니다.</p>
-        </div>
-        <div className="rounded-[8px] px-3 py-3">
-          <p className="text-sm font-semibold text-slate-100">비밀번호 변경</p>
-          <p className="mt-1 text-xs text-[#616161]">현재 화면은 데모 플로우입니다.</p>
-        </div>
-        <Link
-          href="/collections"
-          className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left transition hover:bg-[#1f2a42] active:bg-[#2a3652] disabled:opacity-50 disabled:pointer-events-none"
-        >
-          <span className="text-sm font-semibold text-slate-100">저장 설정</span>
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#616161]">
-            기본 컬렉션
-            <ChevronRight size={16} />
-          </span>
-        </Link>
-      </>
-    );
+    return null;
   };
 
   const socialRows = useMemo(
@@ -468,15 +388,25 @@ export default function SettingsPage() {
       activeSocialProviders.map((provider) => {
         const label = PROVIDER_LABEL[provider] || provider;
         const connected = connectedSocialProviders.includes(provider);
-        const isCurrent = authState.type === 'social' && authState.provider === provider;
+        const isCurrent = authState.type === AUTH_STATES.social && authState.provider === provider;
 
         return (
           <div key={provider} className="flex items-center justify-between rounded-[8px] px-3 py-3">
-            <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              {provider === 'google' && (
+                <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                  <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                  <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                </svg>
+              )}
+              <div className="min-w-0">
               <p className="text-sm font-semibold text-slate-100">{label}</p>
               <p className="mt-1 text-xs text-[#616161]">
                 {connected ? `${label} 연동됨${isCurrent ? ' (현재 계정)' : ''}` : '연동되지 않음'}
               </p>
+              </div>
             </div>
             {connected ? (
               <span className="rounded-[8px] bg-[#1E1E1E] px-2 py-1 text-xs font-semibold text-[#616161]">연결됨</span>
@@ -493,7 +423,7 @@ export default function SettingsPage() {
           </div>
         );
       }),
-    [authState, isBusy, connectedSocialProviders],
+    [authState, isBusy, connectedSocialProviders, activeSocialProviders, handleSocialLink]
   );
 
   return (
@@ -506,72 +436,42 @@ export default function SettingsPage() {
         <>
           <section className="px-4 pt-4">
             <div className="rounded-[14px] border border-[#323232] bg-[#1E1E1E] p-4 shadow-sm">
-              {authState.type === 'guest' ? (
+              {authState.type === AUTH_STATES.anonymous ? (
                 <>
                   <div className="mb-3 inline-flex items-center gap-2 rounded-[8px] bg-[#1a2540] px-2 py-1 text-xs font-semibold text-[#6d9fd6]">
                     <Sparkles size={14} />
-                    게스트
+                    비로그인
                   </div>
-                  <p className="text-sm font-bold text-slate-100">현재 {guestSavedCount} / {STORAGE_LIMIT}개 저장</p>
-                  <div className="mt-2 h-2 w-full overflow-hidden rounded-[999px] bg-[#1E1E1E]">
-                    <div
-                      className="h-full rounded-[999px] bg-[#6d9fd6] transition-all duration-200"
-                      style={{ width: `${Math.floor(guestUsageRatio * 100)}%` }}
-                    />
-                  </div>
-                  {showGuestWarning ? (
-                    <p className="mt-2 text-xs text-[#616161]">
-                      한도까지 {guestRemaining}개 남았어요. 가입하면 무제한 저장!
-                    </p>
-                  ) : null}
-                </>
-              ) : authState.type === 'social' ? (
-                <>
-                  <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <span className="rounded-[8px] bg-[#6d9fd6] px-2 py-1 text-[11px] font-semibold text-white">
-                      {PROVIDER_BADGE[authState.provider]}
-                    </span>
-                    <span className="rounded-[8px] border border-[#6d9fd6]/30 px-2 py-1 text-[11px] font-semibold text-[#6d9fd6]">
-                      정회원
-                    </span>
-                  </div>
-                  <p className="text-sm font-bold text-slate-100">{authState.email}</p>
-                  <p className="mt-1 text-xs text-[#616161]">연동된 제공자로 로그인됨</p>
+                  <p className="text-sm font-bold text-slate-100">Google 로그인 후 저장/동기화 기능을 사용할 수 있어요.</p>
                 </>
               ) : (
-                <>
-                  <div className="mb-2 flex items-center gap-3">
-                    <div className="grid h-10 w-10 place-items-center rounded-[8px] bg-[#6d9fd6] text-sm font-bold text-white">
-                      {authState.email?.trim()?.[0]?.toUpperCase() || 'M'}
+                authState.type === AUTH_STATES.social ? (
+                  <>
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <span className="rounded-[8px] bg-[#353535] px-2 py-1 text-[11px] font-semibold text-white">
+                        {PROVIDER_BADGE[authState.provider]}
+                      </span>
                     </div>
-                    <div>
-                      <p className="text-sm font-bold text-slate-100">{authState.email}</p>
-                      <div className="mt-1 flex flex-wrap items-center gap-2">
-                        <span className="rounded-[8px] border border-[#6d9fd6]/30 px-2 py-1 text-[11px] font-semibold text-[#6d9fd6]">
-                          정회원
-                        </span>
-                        <span className="rounded-[8px] border border-[#6d9fd6]/30 px-2 py-1 text-[11px] font-semibold text-[#6d9fd6]">
-                          오픈 베타
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <p className="rounded-[8px] bg-[#1E1E1E] p-3 text-xs text-[#616161]">
-                    저장됨 {memberSavedCount}개 / 컬렉션 {memberCollectionCount}개 / 이번 달 {memberSavedThisMonth}개
-                  </p>
-                </>
+                    <p className="text-sm font-bold text-slate-100">{authState.email}</p>
+                    <p className="mt-1 text-xs text-[#616161]">연동된 제공자로 로그인됨</p>
+                  </>
+                ) : null
               )}
             </div>
           </section>
 
           <section className="mb-4 px-4 pt-4">
             <h2 className="mb-2 px-2 text-xs font-semibold text-[#616161]">계정</h2>
-            <div className="overflow-hidden rounded-[14px] border border-[#323232] bg-[#1E1E1E]">
-              <div className="space-y-1 p-1">{accountRowsByState()}</div>
-            </div>
+            {authState.type === AUTH_STATES.anonymous ? (
+              <div className="px-1">{accountRowsByState()}</div>
+            ) : (
+              <div className="overflow-hidden rounded-[14px] border border-[#323232] bg-[#1E1E1E]">
+                <div className="space-y-1 p-1">{accountRowsByState()}</div>
+              </div>
+            )}
           </section>
 
-          {authState.type !== 'guest' ? (
+          {authState.type === AUTH_STATES.social ? (
             <section className="mb-4 px-4">
               <h2 className="mb-2 px-2 text-xs font-semibold text-[#616161]">소셜 연동 관리</h2>
               <div className="overflow-hidden rounded-[14px] border border-[#323232] bg-[#1E1E1E]">
@@ -597,7 +497,7 @@ export default function SettingsPage() {
             </div>
           </section>
 
-          {authState.type !== 'guest' ? (
+          {authState.type === AUTH_STATES.social ? (
             <section className="px-4">
               <h2 className="mb-2 px-2 text-xs font-semibold text-[#616161]">데이터 관리</h2>
               <div className="overflow-hidden rounded-[14px] border border-[#323232] bg-[#1E1E1E]">
@@ -617,7 +517,7 @@ export default function SettingsPage() {
             </section>
           ) : null}
 
-          {authState.type !== 'guest' ? (
+          {authState.type === AUTH_STATES.social ? (
             <section className="mt-4 px-4">
               <h2 className="mb-2 px-2 text-xs font-semibold text-[#616161]">안전</h2>
               <div className="overflow-hidden rounded-[14px] border border-[#323232] bg-[#1E1E1E]">
@@ -634,7 +534,7 @@ export default function SettingsPage() {
                   <ChevronRight size={16} className="text-[#616161]" />
                 </button>
 
-                {authState.type === 'member' ? (
+                {authState.type === AUTH_STATES.social ? (
                   <button
                     type="button"
                     onClick={handleDeleteAccount}

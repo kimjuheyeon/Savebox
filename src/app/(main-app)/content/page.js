@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { LayoutGrid, Loader2, List, MoreHorizontal, PencilLine, Plus, Search, Trash2, X } from 'lucide-react';
+import { ArrowUpDown, LayoutGrid, Loader2, List, MoreHorizontal, PencilLine, Plus, Search, Trash2, X } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { SNS_SOURCES, getSourceMeta, shortDate } from '@/lib/prototypeData';
 import { Button } from '@/components/ui/button';
@@ -39,6 +39,7 @@ function ContentPageInner() {
 
   const [viewMode, setViewMode] = useState('list');
   const [sort, setSort] = useState('latest');
+  const [showSortMenu, setShowSortMenu] = useState(false);
   const [sourceFilter, setSourceFilter] = useState('전체');
   const [gridMenuId, setGridMenuId] = useState(null);
   const [allContents, setAllContents] = useState([]);
@@ -212,7 +213,7 @@ function ContentPageInner() {
             <button
               onClick={() => setViewMode('grid')}
               className={`flex-1 rounded-l-xl px-3 py-2 text-xs font-semibold transition ${
-                viewMode === 'grid' ? 'bg-[#3385FF] text-white active:bg-[#2669d9]' : 'text-[#777777] hover:bg-[#212b42] active:bg-[#283350]'
+                viewMode === 'grid' ? 'bg-[#ffffff] text-[#111111]' : 'text-[#777777] hover:bg-[#282828] active:bg-[#333333]'
               }`}
             >
               <span className="inline-flex items-center justify-center gap-1">
@@ -223,7 +224,7 @@ function ContentPageInner() {
             <button
               onClick={() => setViewMode('list')}
               className={`flex-1 rounded-r-xl px-3 py-2 text-xs font-semibold transition ${
-                viewMode === 'list' ? 'bg-[#3385FF] text-white active:bg-[#2669d9]' : 'text-[#777777] hover:bg-[#212b42] active:bg-[#283350]'
+                viewMode === 'list' ? 'bg-[#ffffff] text-[#111111]' : 'text-[#777777] hover:bg-[#282828] active:bg-[#333333]'
               }`}
             >
               <span className="inline-flex items-center justify-center gap-1">
@@ -233,17 +234,33 @@ function ContentPageInner() {
             </button>
           </div>
 
-          <select
-            value={sort}
-            onChange={(event) => setSort(event.target.value)}
-            className="rounded-xl border border-[#323232] bg-[#1E1E1E] px-2 text-xs text-[#777777]"
-          >
-            {SORT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                정렬: {option.label}
-              </option>
-            ))}
-          </select>
+          <div className="relative flex items-center justify-end">
+            <button
+              onClick={() => setShowSortMenu((v) => !v)}
+              className="flex items-center gap-1 text-xs font-semibold text-[#777777] transition hover:text-slate-300"
+            >
+              <ArrowUpDown size={12} />
+              {SORT_OPTIONS.find((o) => o.value === sort)?.label}
+            </button>
+            {showSortMenu && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowSortMenu(false)} />
+                <div className="absolute right-0 top-full z-20 mt-1 w-28 rounded-xl border border-[#323232] bg-[#1E1E1E] py-1 shadow-lg">
+                  {SORT_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => { setSort(opt.value); setShowSortMenu(false); }}
+                      className={`flex w-full items-center px-3 py-2 text-xs font-semibold transition hover:bg-[#282828] ${
+                        sort === opt.value ? 'text-[#3385FF]' : 'text-[#777777]'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
@@ -300,17 +317,16 @@ function ContentPageInner() {
                 className="relative overflow-hidden rounded-2xl border border-[#323232] bg-[#1E1E1E] shadow-sm"
               >
                 <Link href={`/content/${item.id}`}>
-                  <div className="aspect-square bg-[#1E1E1E]">
+                  <div className="aspect-square bg-[#353535]">
                     {item.thumbnail_url ? (
                       <img src={item.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                     ) : (
-                      <div className={`flex h-full w-full flex-col items-center justify-center gap-2 p-3`}>
+                      <div className="flex h-full w-full items-center justify-center p-3">
                         {source.iconSrc ? (
                           <img src={source.iconSrc} alt={sourceName} className="h-8 w-8 object-contain opacity-60" />
                         ) : (
                           <span className="text-2xl font-black text-[#616161]">{sourceName.charAt(0)}</span>
                         )}
-                        <p className="line-clamp-3 text-center text-xs font-medium text-[#777777]">{title}</p>
                       </div>
                     )}
                   </div>
@@ -374,7 +390,7 @@ function ContentPageInner() {
         type="button"
         onClick={() => setShowCreate(true)}
         className="fixed z-20 flex h-14 w-14 items-center justify-center rounded-full bg-[#3385FF] text-white shadow-lg transition hover:bg-[#2f78f0] active:bg-[#2669d9]"
-        style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))', right: 'max(1rem, calc((100vw - 440px) / 2 + 1rem))' }}
+        style={{ bottom: '32px', left: '16px' }}
         aria-label="콘텐츠 추가"
       >
         <Plus size={24} />
@@ -587,17 +603,16 @@ function SwipeableListItem({ item, onDelete }) {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-[#1E1E1E]">
+        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-[#353535]">
           {safeItem.thumbnail_url ? (
             <img src={safeItem.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-0.5 p-1">
+            <div className="flex h-full w-full items-center justify-center p-1">
               {source.iconSrc ? (
                 <img src={source.iconSrc} alt={sourceName} className="h-6 w-6 object-contain opacity-60" />
               ) : (
                 <span className="text-lg font-black text-[#616161]">{sourceName.charAt(0)}</span>
               )}
-              <p className="line-clamp-1 text-center text-[8px] font-medium text-[#616161]">{title}</p>
             </div>
           )}
         </div>
@@ -607,7 +622,6 @@ function SwipeableListItem({ item, onDelete }) {
           <p className="mt-0.5 text-xs text-[#777777]">
             {sourceName} · {shortDate(safeItem.created_at || new Date(0))}
           </p>
-          <p className="mt-1 line-clamp-1 text-xs text-[#616161]">{sourceName}</p>
         </div>
 
       </Link>

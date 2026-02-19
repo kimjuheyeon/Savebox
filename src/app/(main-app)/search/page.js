@@ -1,14 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Search, X, Flame, Clock3 } from 'lucide-react';
+import { Search, X, Clock3 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import ListItem from '@/components/ListItem';
-import { formatKoreanDate } from '@/lib/prototypeData';
+import { formatKoreanDate, getSourceMeta } from '@/lib/prototypeData';
 import { fetchContents } from '@/lib/api';
 import { ICON_BUTTON_BASE_CLASS, ICON_BUTTON_ICON_SIZE, ICON_BUTTON_SIZE_CLASS } from '@/lib/iconUI';
 
-const POPULAR_SEARCHES = ['디자인 시스템', '파스타 레시피', '리액트 성능', '컬러 팔레트'];
 
 export default function SearchPage() {
   const [query, setQuery] = useState('');
@@ -98,7 +97,7 @@ export default function SearchPage() {
           </div>
           <button
             onClick={() => applySearch(query)}
-            className="rounded-[8px] bg-[#3385FF] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#2f78f0] active:bg-[#2669d9]"
+            className="self-stretch rounded-[8px] border border-[#323232] bg-[#282828] px-3 text-xs font-semibold text-white transition hover:bg-[#333333] active:bg-[#3d3d3d]"
           >
             검색
           </button>
@@ -125,7 +124,7 @@ export default function SearchPage() {
                     <button
                       key={item}
                       onClick={() => applySearch(item)}
-                      className="inline-flex items-center gap-2 rounded-[8px] border border-[#323232] px-3 py-1.5 text-xs text-[#777777] transition hover:bg-[#212b42] active:bg-[#283350]"
+                      className="inline-flex items-center gap-2 rounded-[8px] border border-[#323232] px-3 py-1.5 text-xs text-white transition hover:bg-[#282828] active:bg-[#333333]"
                     >
                       <span>{item}</span>
                       <span
@@ -143,23 +142,6 @@ export default function SearchPage() {
               </div>
             )}
 
-            <div>
-              <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#777777]">
-                <Flame size={16} />
-                인기 검색어
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {POPULAR_SEARCHES.map((item) => (
-                  <button
-                    key={item}
-                    onClick={() => applySearch(item)}
-                    className="rounded-[8px] bg-[#3385FF] px-3 py-1.5 text-xs text-white transition hover:bg-[#2f78f0] active:bg-[#2669d9]"
-                  >
-                    {item}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
         )}
 
@@ -177,12 +159,16 @@ export default function SearchPage() {
                     key={item.id}
                     href={`/content/${item.id}`}
                     leading={
-                      <div className="h-12 w-12 overflow-hidden rounded-[8px] bg-[#1E1E1E]">
+                      <div className="h-12 w-12 overflow-hidden rounded-[8px] bg-[#353535]">
                         {item.thumbnail_url ? (
                           <img src={item.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                         ) : (
-                          <div className="grid h-full w-full place-items-center text-lg font-bold text-[#777777]">
-                            {item.title.charAt(0)}
+                          <div className="flex h-full w-full items-center justify-center p-1">
+                            {(() => { const s = getSourceMeta(item.source || 'Other'); return s.iconSrc ? (
+                              <img src={s.iconSrc} alt={item.source} className="h-6 w-6 object-contain opacity-60" />
+                            ) : (
+                              <span className="text-lg font-black text-[#616161]">{(item.source || 'S').charAt(0)}</span>
+                            ); })()}
                           </div>
                         )}
                       </div>

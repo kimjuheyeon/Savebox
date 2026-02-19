@@ -31,6 +31,8 @@ export default function ContentDetailPage({ params }) {
   const [openEditor, setOpenEditor] = useState(false);
   const [draft, setDraft] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [memoValue, setMemoValue] = useState('');
+  const [memoSaving, setMemoSaving] = useState(false);
   const [deleted, setDeleted] = useState(false);
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const actionMenuRef = useRef(null);
@@ -58,19 +60,20 @@ export default function ContentDetailPage({ params }) {
     return (
       draft.title !== content.title ||
       draft.source !== content.source ||
-      draft.memo !== (content.memo || '') ||
       draft.collectionId !== (content.collection_id || '')
     );
   }, [content, draft]);
+
+  const memoIsDirty = memoValue !== (content?.memo || '');
 
   useEffect(() => {
     if (!content) return;
     setDraft({
       title: content.title,
       source: content.source,
-      memo: content.memo || '',
       collectionId: content.collection_id || '',
     });
+    setMemoValue(content.memo || '');
     if (searchParams?.get('edit') === 'true') {
       setOpenEditor(true);
     }
@@ -167,7 +170,6 @@ export default function ContentDetailPage({ params }) {
       const updated = await updateContent(content.id, {
         title: draft.title,
         source: draft.source,
-        memo: draft.memo,
         collectionId: draft.collectionId || null,
       });
       setContent(updated);
@@ -177,6 +179,19 @@ export default function ContentDetailPage({ params }) {
       setSnackbarMessage('저장에 실패했습니다.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSaveMemo = async () => {
+    setMemoSaving(true);
+    try {
+      const updated = await updateContent(content.id, { memo: memoValue });
+      setContent(updated);
+      setSnackbarMessage('메모 저장됨');
+    } catch (err) {
+      setSnackbarMessage('저장에 실패했습니다.');
+    } finally {
+      setMemoSaving(false);
     }
   };
 
@@ -226,9 +241,9 @@ export default function ContentDetailPage({ params }) {
                       openEditorSheet();
                     }}
                     type="button"
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-[#777777] transition hover:bg-[#212b42] active:bg-[#283350]"
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] font-semibold text-white transition hover:bg-[#212b42] active:bg-[#283350]"
                   >
-                    <PencilLine size={12} />
+                    <PencilLine size={16} />
                     수정
                   </button>
                   <button
@@ -238,9 +253,9 @@ export default function ContentDetailPage({ params }) {
                       handleDelete();
                     }}
                     type="button"
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-rose-400 transition hover:bg-rose-950/30 active:bg-rose-950/50"
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] font-semibold text-rose-400 transition hover:bg-rose-950/30 active:bg-rose-950/50"
                   >
-                    <Trash2 size={12} />
+                    <Trash2 size={16} />
                     삭제
                   </button>
                 </div>
@@ -251,11 +266,11 @@ export default function ContentDetailPage({ params }) {
       />
 
       <section className="mx-4 mt-4 overflow-hidden rounded-[8px] border border-[#323232] bg-[#1E1E1E]">
-        <div className="aspect-[16/9] bg-[#1E1E1E]">
+        <div className="aspect-[16/9] bg-[#353535]">
           {content.thumbnail_url ? (
             <img src={content.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-[#1E1E1E] p-6">
+            <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-[#353535] p-6">
               {sourceMeta.iconSrc ? (
                 <img src={sourceMeta.iconSrc} alt={safeSource} className="h-12 w-12 object-contain opacity-60" />
               ) : (
@@ -279,17 +294,30 @@ export default function ContentDetailPage({ params }) {
               {safeSource}
             </p>
             <h1 className="mt-2 text-2xl font-bold leading-snug text-slate-100">{safeTitle}</h1>
-            <p className="mt-2 text-sm text-[#777777]">컬렉션 태그: {linkedCollection?.name || '미분류'}</p>
-            <p className={`mt-2 inline-flex items-center rounded-[8px] border px-2.5 py-1 text-xs ${color.badge}`}>
-              <span className={`mr-1 h-2 w-2 rounded-[8px] ${color.dot}`} /> {content.color_tag || 'Gray'}
-            </p>
+            <p className="mt-2 text-sm text-[#777777]">컬렉션: {linkedCollection?.name || '미분류'}</p>
           </div>
 
           <div className="rounded-[8px] border border-[#323232] bg-[#1E1E1E] p-3">
-            <p className="text-xs font-semibold text-[#777777]">메모</p>
-            <p className="mt-1 min-h-[48px] text-sm text-[#777777]">
-              {content.memo ? content.memo : <span className="text-[#616161]">메모를 추가하세요</span>}
-            </p>
+            <p className="mb-1.5 text-xs font-semibold text-[#777777]">메모</p>
+            <textarea
+              value={memoValue}
+              onChange={(e) => setMemoValue(e.target.value)}
+              maxLength={500}
+              placeholder="메모를 입력하세요"
+              className="h-24 w-full resize-none bg-transparent text-sm text-slate-100 placeholder:text-[#616161] outline-none"
+            />
+            {memoIsDirty && (
+              <div className="mt-2 flex items-center justify-between">
+                <p className="text-xs text-[#616161]">{memoValue.length}/500</p>
+                <button
+                  onClick={handleSaveMemo}
+                  disabled={memoSaving}
+                  className="rounded-[6px] bg-[#3385FF] px-3 py-1 text-xs font-semibold text-white transition hover:bg-[#2f78f0] active:bg-[#2669d9] disabled:opacity-50"
+                >
+                  {memoSaving ? '저장 중...' : '저장'}
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-between text-xs text-[#777777]">
@@ -387,20 +415,6 @@ export default function ContentDetailPage({ params }) {
                   </select>
                 </label>
 
-                <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-[#777777]">
-                    메모 (최대 500자)
-                  </span>
-                  <textarea
-                    value={draft?.memo || ''}
-                    maxLength={500}
-                    onChange={(event) => setDraft((prev) => ({ ...prev, memo: event.target.value }))}
-                    className="h-28 w-full resize-none rounded-[8px] border border-[#323232] bg-[#1E1E1E] px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-500"
-                  />
-                  <p className="mt-1 text-right text-xs text-[#616161]">
-                    {(draft?.memo || '').length}/500
-                  </p>
-                </label>
               </div>
 
               <Button

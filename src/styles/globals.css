@@ -6,13 +6,13 @@
 @layer base {
   html,
   body {
-    background: #ffffff;
+    background: #0f172a;
   }
   html {
     color-scheme: dark;
   }
   body {
-    @apply bg-[#ffffff] text-[#ffffff];
+    @apply bg-[#0f172a] text-[#e2e8f0];
   }
   button {
     min-height: 32px;

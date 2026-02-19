@@ -53,7 +53,7 @@ export default function MainDashboardPage() {
         rightContent={
           <Link
             href="/search"
-            className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-[8px] bg-[#3385FF] text-white transition hover:bg-[#2f78f0] active:bg-[#2669d9]`}
+            className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-lg border border-[#323232] text-[#777777] transition hover:bg-[#212b42] active:bg-[#283350]`}
             aria-label="검색"
           >
             <Search size={ICON_BUTTON_ICON_SIZE} />
@@ -63,8 +63,8 @@ export default function MainDashboardPage() {
 
       <section className="mb-6 px-4 pt-5">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-bold text-slate-100">최근 저장 항목</h2>
-          <Link href="/content" className="text-sm font-medium text-indigo-400">
+          <h2 className="text-base font-bold text-slate-100">최근 저장 컨텐츠</h2>
+          <Link href="/content" className="text-sm font-medium text-[#3385FF]">
             전체보기
           </Link>
         </div>
@@ -81,7 +81,7 @@ export default function MainDashboardPage() {
               href={`/content/${item.id}`}
               className="w-36 shrink-0 rounded-[8px] border border-[#323232] bg-[#1E1E1E] p-2.5 shadow-sm transition hover:bg-[#212b42] hover:shadow-md"
             >
-              <div className="aspect-square overflow-hidden rounded-[8px] bg-[#1E1E1E]">
+              <div className="aspect-square overflow-hidden rounded-[8px] bg-[#353535]">
                 {item.thumbnail_url ? (
                   <img src={item.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                 ) : (
@@ -105,7 +105,7 @@ export default function MainDashboardPage() {
       <section className="mb-6 px-4">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-base font-bold text-slate-100">컬렉션</h2>
-          <Link href="/collections" className="text-sm font-semibold text-indigo-400">
+          <Link href="/collections" className="text-sm font-semibold text-[#3385FF]">
             더보기
           </Link>
         </div>
@@ -121,7 +121,7 @@ export default function MainDashboardPage() {
               key={collection.id}
               href={`/content?collection=${collection.id}`}
               leading={
-                <div className="flex h-10 w-10 items-center justify-center rounded-[8px] bg-[#1E1E1E] text-lg">
+                <div className="flex h-10 w-10 items-center justify-center rounded-[8px] bg-[#353535] text-lg">
                   📁
                 </div>
               }
