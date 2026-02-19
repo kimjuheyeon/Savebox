@@ -92,13 +92,12 @@ export default function MainDashboardPage() {
                 {item.thumbnail_url ? (
                   <img src={item.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full w-full flex-col items-center justify-center gap-1.5 p-2">
+                  <div className="flex h-full w-full items-center justify-center p-2">
                     {(() => { const s = getSourceMeta(item.source || 'Other'); return s.iconSrc ? (
                       <img src={s.iconSrc} alt={item.source} className="h-8 w-8 object-contain opacity-60" />
                     ) : (
                       <span className="text-2xl font-black text-[#616161]">{(item.source || 'S').charAt(0)}</span>
                     ); })()}
-                    <p className="line-clamp-2 text-center text-[10px] font-medium text-[#777777]">{item.title}</p>
                   </div>
                 )}
               </div>
