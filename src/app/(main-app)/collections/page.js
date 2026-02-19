@@ -7,7 +7,7 @@ import ListItem from '@/components/ListItem';
 import { ICON_BUTTON_BASE_CLASS, ICON_BUTTON_ICON_SIZE, ICON_BUTTON_SIZE_CLASS } from '@/lib/iconUI';
 import { COLOR_TAGS } from '@/lib/prototypeData';
 import { Button } from '@/components/ui/button';
-import { fetchCollections, createCollection, deleteCollections } from '@/lib/api';
+import { fetchCollections, createCollection, deleteCollections, deleteContentsInCollections } from '@/lib/api';
 
 const COLOR_CHOICES = ['Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Gray'];
 
@@ -19,6 +19,8 @@ export default function CollectionsPage() {
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState('Blue');
   const [creating, setCreating] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [removableIds, setRemovableIds] = useState([]);
 
   useEffect(() => {
     async function load() {
@@ -117,21 +119,24 @@ export default function CollectionsPage() {
   const isDuplicate = (name) =>
     collections.some((col) => col.name.toLowerCase() === name.toLowerCase());
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     const removable = selectedIds.filter((id) => !collections.find((c) => c.id === id)?.is_system);
-
     if (removable.length === 0) {
       alert('시스템 컬렉션은 삭제할 수 없습니다.');
       return;
     }
+    setRemovableIds(removable);
+    setDeleteModal(true);
+  };
 
-    if (!confirm('선택한 컬렉션을 삭제할까요?\n\n포함된 콘텐츠는 미분류 상태가 됩니다.')) {
-      return;
-    }
-
+  const executeDelete = async (withContents) => {
+    setDeleteModal(false);
     try {
-      await deleteCollections(removable);
-      setCollections((prev) => prev.filter((c) => !removable.includes(c.id)));
+      if (withContents) {
+        await deleteContentsInCollections(removableIds);
+      }
+      await deleteCollections(removableIds);
+      setCollections((prev) => prev.filter((c) => !removableIds.includes(c.id)));
       setSelectedIds([]);
       setEditing(false);
     } catch (err) {
@@ -214,13 +219,19 @@ export default function CollectionsPage() {
       )}
 
       {!editing && (
-        <button
-          onClick={() => setCreating((prev) => !prev)}
-          className="fixed z-30 inline-flex items-center gap-2 rounded-[8px] border border-[#3385FF]/30 bg-indigo-950/80 px-4 py-3 text-sm font-semibold text-[#3385FF] shadow-lg min-h-[48px] transition hover:bg-indigo-900 active:bg-indigo-800"
-          style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))', right: 'max(1rem, calc((100vw - 440px) / 2 + 1rem))' }}
+        <div
+          className="pointer-events-none fixed bottom-0 left-1/2 z-30 w-full max-w-[440px] -translate-x-1/2"
+          style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom, 0px) + 32px)' }}
         >
-          <Pencil size={16} /> 새 컬렉션 만들기
-        </button>
+          <div className="flex justify-end px-4">
+            <button
+              onClick={() => setCreating((prev) => !prev)}
+              className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-[#3385FF] px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-[#2f78f0] active:bg-[#2669d9]"
+            >
+              <Pencil size={16} /> 새 컬렉션 만들기
+            </button>
+          </div>
+        </div>
       )}
 
       {creating && (
@@ -291,6 +302,39 @@ export default function CollectionsPage() {
             </div>
           </div>
         </>
+      )}
+
+      {deleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6" onClick={() => setDeleteModal(false)}>
+          <div className="w-full max-w-[340px] rounded-2xl border border-[#323232] bg-[#1E1E1E] p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-base font-bold text-slate-100">삭제 방식을 선택해주세요</h3>
+            <p className="mt-2 text-sm text-[#777777]">
+              컬렉션 <span className="font-semibold text-slate-100">{removableIds.length}개</span>를 어떻게 삭제할까요?
+            </p>
+            <div className="mt-5 space-y-2">
+              <button
+                onClick={() => executeDelete(false)}
+                className="w-full rounded-xl border border-[#323232] px-4 py-3 text-left transition hover:bg-[#282828] active:bg-[#333333]"
+              >
+                <p className="text-sm font-semibold text-slate-100">컬렉션만 삭제</p>
+                <p className="mt-0.5 text-xs text-[#777777]">콘텐츠는 미분류로 이동해요</p>
+              </button>
+              <button
+                onClick={() => executeDelete(true)}
+                className="w-full rounded-xl border border-rose-900/50 bg-rose-950/30 px-4 py-3 text-left transition hover:bg-rose-950/50 active:bg-rose-950/70"
+              >
+                <p className="text-sm font-semibold text-rose-400">콘텐츠도 함께 삭제</p>
+                <p className="mt-0.5 text-xs text-[#777777]">포함된 콘텐츠가 모두 삭제돼요</p>
+              </button>
+            </div>
+            <button
+              onClick={() => setDeleteModal(false)}
+              className="mt-3 w-full rounded-xl py-2.5 text-sm font-semibold text-[#777777] transition hover:bg-[#282828]"
+            >
+              취소
+            </button>
+          </div>
+        </div>
       )}
     </main>
   );

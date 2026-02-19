@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Search } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import ListItem from '@/components/ListItem';
 import { getInitial, getSourceMeta } from '@/lib/prototypeData';
@@ -71,8 +71,15 @@ export default function MainDashboardPage() {
 
         <div className="no-scrollbar -mx-1 flex gap-3 overflow-x-auto pb-1">
           {recentItems.length === 0 && (
-            <div className="w-full rounded-[8px] border border-dashed border-[#323232] bg-[#1E1E1E] p-8 text-center text-sm text-[#777777]">
-              아직 저장된 콘텐츠가 없어요
+            <div className="w-full rounded-[8px] border border-dashed border-[#323232] bg-[#1E1E1E] p-8 text-center">
+              <p className="text-sm text-[#777777]">아직 저장된 콘텐츠가 없어요</p>
+              <Link
+                href="/content?add=true"
+                className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#3385FF] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#2f78f0] active:bg-[#2669d9]"
+              >
+                <Plus size={13} />
+                새 콘텐츠 추가하기
+              </Link>
             </div>
           )}
           {recentItems.map((item) => (

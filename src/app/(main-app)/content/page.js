@@ -57,6 +57,12 @@ function ContentPageInner() {
   const fetchedUrlRef = useRef('');
 
   useEffect(() => {
+    if (searchParams?.get?.('add') === 'true') {
+      setShowCreate(true);
+    }
+  }, []);
+
+  useEffect(() => {
     async function load() {
       try {
         const [contentsResult, cols] = await Promise.all([
@@ -386,15 +392,21 @@ function ContentPageInner() {
       )}
 
       {/* FAB */}
-      <button
-        type="button"
-        onClick={() => setShowCreate(true)}
-        className="fixed z-20 flex h-14 w-14 items-center justify-center rounded-full bg-[#3385FF] text-white shadow-lg transition hover:bg-[#2f78f0] active:bg-[#2669d9]"
-        style={{ bottom: '32px', left: '16px' }}
-        aria-label="콘텐츠 추가"
+      <div
+        className="pointer-events-none fixed bottom-0 left-1/2 z-20 w-full max-w-[440px] -translate-x-1/2"
+        style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom, 0px) + 32px)' }}
       >
-        <Plus size={24} />
-      </button>
+        <div className="flex justify-end px-4">
+          <button
+            type="button"
+            onClick={() => setShowCreate(true)}
+            className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-[#3385FF] px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-[#2f78f0] active:bg-[#2669d9]"
+          >
+            <Plus size={16} />
+            새 콘텐츠 추가
+          </button>
+        </div>
+      </div>
 
       {/* 콘텐츠 추가 바텀시트 */}
       {showCreate && (

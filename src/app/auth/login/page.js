@@ -68,12 +68,9 @@ export default function LoginPage() {
   };
 
   return (
-    <section className="mx-auto mt-4 max-w-[400px]">
-      <p className="inline-flex rounded-[8px] bg-indigo-950/50 px-3 py-1 text-[11px] font-semibold text-indigo-400">
-        AUTH-05
-      </p>
-      <h1 className="mt-3 text-2xl font-black text-white">다시 만나서 반가워요</h1>
-      <p className="mt-2 text-sm text-[#777777]">Google 계정으로 로그인해요.</p>
+    <section className="mx-auto mt-6 max-w-[400px]">
+      <h1 className="text-3xl font-black tracking-tight text-white">다시 만나서 반가워요</h1>
+      <p className="mt-3 text-sm leading-relaxed text-[#777777]">Google 계정으로 로그인해요.</p>
 
       <div className="mt-8 space-y-3">
         <GoogleMaterialButton
@@ -86,12 +83,12 @@ export default function LoginPage() {
 
       {hasError ? <p className="mt-2 text-xs font-semibold text-rose-400">{hasError}</p> : null}
 
-      <div className="mt-6 rounded-[8px] bg-[#1E1E1E] p-3 text-xs text-[#777777]">
-        <p className="flex items-center gap-2 font-semibold text-[#777777]">계정이 없다면</p>
-        <Link href="/auth" className="mt-2 inline-flex font-semibold text-indigo-400">
-          회원가입 화면으로 이동
+      <p className="mt-6 text-center text-sm text-[#777777]">
+        계정이 없으신가요?{' '}
+        <Link href="/auth" className="font-semibold text-[#3385FF]">
+          회원가입
         </Link>
-      </div>
+      </p>
     </section>
   );
 }

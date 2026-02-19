@@ -63,10 +63,7 @@ export default function QuickSignupPage() {
 
   return (
     <section className="mx-auto mt-6 max-w-[400px]">
-      <p className="inline-flex rounded-[8px] bg-indigo-950/50 px-3 py-1 text-[11px] font-semibold text-indigo-400">
-        SaveBox v1.0
-      </p>
-      <h1 className="mt-4 text-3xl font-black tracking-tight text-white">SaveBox 시작하기</h1>
+      <h1 className="text-3xl font-black tracking-tight text-white">SaveBox 시작하기</h1>
       <p className="mt-3 text-sm leading-relaxed text-[#777777]">저장한 콘텐츠를 한 곳에서 모으고, 빠르게 재발견하세요.</p>
 
       <div className="mt-8 space-y-3">
@@ -82,7 +79,7 @@ export default function QuickSignupPage() {
 
       <p className="mt-6 text-center text-sm text-[#777777]">
         이미 계정이 있으신가요?{' '}
-        <Link href="/auth/login" className="font-semibold text-indigo-400">
+        <Link href="/auth/login" className="font-semibold text-[#3385FF]">
           로그인
         </Link>
       </p>

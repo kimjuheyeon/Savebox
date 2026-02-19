@@ -487,13 +487,6 @@ export default function SettingsPage() {
                 <span className="text-sm font-semibold text-slate-100">버전</span>
                 <span className="text-xs font-semibold text-[#616161]">SaveBox v1.0.3</span>
               </div>
-              <div className="flex w-full items-center justify-between rounded-[8px] px-3 py-3 text-left">
-                <span className="text-sm font-semibold text-slate-100">이용약관</span>
-                <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#616161]">
-                  보기
-                  <ChevronRight size={16} />
-                </span>
-              </div>
             </div>
           </section>
 

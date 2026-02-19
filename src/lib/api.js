@@ -81,6 +81,16 @@ export async function deleteCollections(ids) {
   if (error) throw error;
 }
 
+export async function deleteContentsInCollections(collectionIds) {
+  const supabase = getClient();
+  const { error } = await supabase
+    .from('contents')
+    .delete()
+    .in('collection_id', collectionIds);
+
+  if (error) throw error;
+}
+
 // ─── Contents ──────────────────────────────────────
 
 export async function fetchContents({ collectionId, source, q, limit = 50, offset = 0 } = {}) {
