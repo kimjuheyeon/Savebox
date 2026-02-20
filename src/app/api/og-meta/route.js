@@ -75,11 +75,18 @@ export async function POST(request) {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 8000);
 
+      // Meta 계열(Threads/Instagram)은 facebookexternalhit UA에만 og 태그 응답
+      const isMeta = source === 'Threads' || source === 'Instagram';
+      const htmlUserAgent = isMeta
+        ? 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'
+        : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
       const response = await fetch(parsedUrl.href, {
         signal: controller.signal,
         headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; SaveBox/1.0; +https://savebox.app)',
-          'Accept': 'text/html',
+          'User-Agent': htmlUserAgent,
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
         },
         redirect: 'follow',
       });
@@ -109,7 +116,9 @@ export async function POST(request) {
     }
 
     // og:image를 Supabase Storage에 프록시 업로드
-    if (thumbnailUrl) {
+    // Threads/Instagram CDN은 서버에서 직접 다운로드 불가 → og:image URL 그대로 반환
+    const isMeta = source === 'Threads' || source === 'Instagram';
+    if (thumbnailUrl && !isMeta) {
       try {
         const imgController = new AbortController();
         const imgTimeout = setTimeout(() => imgController.abort(), 5000);
@@ -117,8 +126,8 @@ export async function POST(request) {
         const imgResponse = await fetch(thumbnailUrl, {
           signal: imgController.signal,
           headers: {
-            'User-Agent': 'Mozilla/5.0 (compatible; SaveBox/1.0; +https://savebox.app)',
-            'Accept': 'image/*',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
           },
           redirect: 'follow',
         });

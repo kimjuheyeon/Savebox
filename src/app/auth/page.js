@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getSupabaseBrowserClientSafe } from '@/lib/supabase/client';
 import GoogleMaterialButton from '@/components/GoogleMaterialButton';
@@ -64,7 +63,10 @@ export default function QuickSignupPage() {
   return (
     <section className="mx-auto mt-6 max-w-[400px]">
       <h1 className="text-3xl font-black tracking-tight text-white">SaveBox 시작하기</h1>
-      <p className="mt-3 text-sm leading-relaxed text-[#777777]">저장한 콘텐츠를 한 곳에서 모으고, 빠르게 재발견하세요.</p>
+      <p className="mt-3 text-sm leading-relaxed text-[#777777]">
+        별도 회원가입 없이 Google 계정 하나로 바로 시작하세요.<br />
+        저장한 콘텐츠를 한 곳에서 모으고, 빠르게 재발견할 수 있어요.
+      </p>
 
       <div className="mt-8 space-y-3">
         <GoogleMaterialButton
@@ -77,11 +79,26 @@ export default function QuickSignupPage() {
 
       {errorMessage ? <p className="mt-2 text-xs font-semibold text-rose-400">{errorMessage}</p> : null}
 
-      <p className="mt-6 text-center text-sm text-[#777777]">
-        이미 계정이 있으신가요?{' '}
-        <Link href="/auth/login" className="font-semibold text-[#3385FF]">
-          로그인
-        </Link>
+      <div className="mt-8 rounded-[14px] border border-[#323232] bg-[#1E1E1E] p-4">
+        <h3 className="text-xs font-bold text-slate-100">무료 체험 정책</h3>
+        <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-[#777777]">
+          <li className="flex items-start gap-2">
+            <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-[#3385FF]" />
+            로그인 없이 최대 <strong className="text-slate-300">5개</strong>까지 콘텐츠를 저장할 수 있어요.
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-[#3385FF]" />
+            로그인하면 저장 제한 없이 <strong className="text-slate-300">무제한</strong>으로 사용할 수 있어요.
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-[#3385FF]" />
+            무료 저장한 콘텐츠는 로그인 시 자동으로 계정에 옮겨져요.
+          </li>
+        </ul>
+      </div>
+
+      <p className="mt-5 text-center text-xs text-[#616161]">
+        이미 사용 중이신 분도 같은 버튼으로 로그인돼요.
       </p>
     </section>
   );

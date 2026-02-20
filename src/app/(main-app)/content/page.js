@@ -9,6 +9,9 @@ import { SNS_SOURCES, getSourceMeta, shortDate } from '@/lib/prototypeData';
 import { Button } from '@/components/ui/button';
 import { ICON_BUTTON_BASE_CLASS, ICON_BUTTON_ICON_SIZE, ICON_BUTTON_SIZE_CLASS } from '@/lib/iconUI';
 import { fetchContents, fetchCollections, createContent, deleteContent } from '@/lib/api';
+import { getGuestContents, clearGuestContents, GUEST_LIMIT } from '@/lib/guestStorage';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import GoogleMaterialButton from '@/components/GoogleMaterialButton';
 
 const SORT_OPTIONS = [
   { value: 'latest', label: '최신순' },
@@ -37,7 +40,17 @@ function ContentPageInner() {
   const searchParams = useSearchParams();
   const collectionParam = searchParams?.get?.('collection') || null;
 
-  const [viewMode, setViewMode] = useState('list');
+  const [viewMode, setViewMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('savebox_view_mode') || 'list';
+    }
+    return 'list';
+  });
+
+  const changeViewMode = (mode) => {
+    setViewMode(mode);
+    localStorage.setItem('savebox_view_mode', mode);
+  };
   const [sort, setSort] = useState('latest');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [sourceFilter, setSourceFilter] = useState('전체');
@@ -54,6 +67,10 @@ function ContentPageInner() {
   const [newCollectionId, setNewCollectionId] = useState('');
   const [creating, setCreating] = useState(false);
   const [fetching, setFetching] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
+  const [guestCount, setGuestCount] = useState(0);
+  const [showLoginNudge, setShowLoginNudge] = useState(false);
+  const [nudgeLoading, setNudgeLoading] = useState(false);
   const fetchedUrlRef = useRef('');
 
   useEffect(() => {
@@ -65,12 +82,42 @@ function ContentPageInner() {
   useEffect(() => {
     async function load() {
       try {
+        const supabase = getSupabaseBrowserClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        const guest = !session?.user?.id;
+        setIsGuest(guest);
+
+        // 로그인 직후 게스트 데이터 마이그레이션 (세션당 1회만 실행)
+        if (!guest) {
+          const alreadyMigrated = sessionStorage.getItem('savebox_guest_migrated');
+          const guestItems = getGuestContents();
+          if (guestItems.length > 0 && !alreadyMigrated) {
+            sessionStorage.setItem('savebox_guest_migrated', '1');
+            clearGuestContents(); // 먼저 지워서 중복 실행 방지
+            await Promise.allSettled(
+              guestItems.map((item) =>
+                createContent({
+                  title: item.title,
+                  url: item.url,
+                  thumbnailUrl: item.thumbnail_url,
+                  memo: item.memo,
+                  source: item.source,
+                })
+              )
+            );
+          }
+        }
+
         const [contentsResult, cols] = await Promise.all([
           fetchContents({ collectionId: collectionParam || undefined }),
           fetchCollections(),
         ]);
         setAllContents(contentsResult.contents);
         setCollections(cols);
+
+        if (guest) {
+          setGuestCount(getGuestContents().length);
+        }
       } catch (err) {
         console.error('Content page load error:', err);
       } finally {
@@ -108,6 +155,19 @@ function ContentPageInner() {
     return list;
   }, [allContents, sourceFilter, sort]);
 
+  const handleGoogleSignIn = async () => {
+    setNudgeLoading(true);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const explicitBase = process.env.NEXT_PUBLIC_SITE_URL;
+      const base = (explicitBase || window.location.origin).replace(/\/$/, '');
+      const redirectTo = `${base}/auth/callback?mode=signin&provider=google`;
+      await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
+    } catch {
+      setNudgeLoading(false);
+    }
+  };
+
   const clearCollectionFilter = () => {
     router.push('/content');
   };
@@ -117,6 +177,9 @@ function ContentPageInner() {
     try {
       await deleteContent(id);
       setAllContents((prev) => prev.filter((item) => item.id !== id));
+      if (isGuest) {
+        setGuestCount(getGuestContents().length);
+      }
     } catch (err) {
       alert('삭제에 실패했습니다.');
     }
@@ -147,7 +210,8 @@ function ContentPageInner() {
       });
       if (!res.ok) return;
       const meta = await res.json();
-      const isGenericTitle = /^.{0,50}\(@[\w.]+\)\s+on\s+/i.test(meta.title || '');
+      // "@handle" 포함 계정명 형식 제목 감지 (영문 "on", 한국어 "의/님" 등 플랫폼 공통)
+      const isGenericTitle = /\(@[\w.]+\)/.test(meta.title || '');
       const betterTitle = (isGenericTitle && meta.description) ? meta.description.slice(0, 80) : meta.title;
       if (betterTitle && !newTitle) setNewTitle(betterTitle);
       if (meta.source) setNewSource(meta.source);
@@ -169,6 +233,13 @@ function ContentPageInner() {
   const handleCreate = async () => {
     const finalUrl = newUrl.trim();
     if (!finalUrl) return;
+
+    if (isGuest && guestCount >= GUEST_LIMIT) {
+      resetCreateForm();
+      setShowLoginNudge(true);
+      return;
+    }
+
     const finalTitle = newTitle.trim() || finalUrl;
     setCreating(true);
     try {
@@ -181,9 +252,23 @@ function ContentPageInner() {
         collectionId: newCollectionId || null,
       });
       setAllContents((prev) => [created, ...prev]);
-      resetCreateForm();
+      if (isGuest) {
+        const newCount = guestCount + 1;
+        setGuestCount(newCount);
+        resetCreateForm();
+        if (newCount >= GUEST_LIMIT) {
+          setShowLoginNudge(true);
+        }
+      } else {
+        resetCreateForm();
+      }
     } catch (err) {
-      alert('콘텐츠 추가에 실패했습니다.');
+      if (err.code === 'GUEST_LIMIT') {
+        resetCreateForm();
+        setShowLoginNudge(true);
+      } else {
+        alert('콘텐츠 추가에 실패했습니다.');
+      }
     } finally {
       setCreating(false);
     }
@@ -217,7 +302,7 @@ function ContentPageInner() {
         <div className="mt-3 grid grid-cols-2 gap-2">
           <div className="flex items-center rounded-xl border border-[#323232] bg-[#1E1E1E]">
             <button
-              onClick={() => setViewMode('grid')}
+              onClick={() => changeViewMode('grid')}
               className={`flex-1 rounded-l-xl px-3 py-2 text-xs font-semibold transition ${
                 viewMode === 'grid' ? 'bg-[#ffffff] text-[#111111]' : 'text-[#777777] hover:bg-[#282828] active:bg-[#333333]'
               }`}
@@ -228,7 +313,7 @@ function ContentPageInner() {
               </span>
             </button>
             <button
-              onClick={() => setViewMode('list')}
+              onClick={() => changeViewMode('list')}
               className={`flex-1 rounded-r-xl px-3 py-2 text-xs font-semibold transition ${
                 viewMode === 'list' ? 'bg-[#ffffff] text-[#111111]' : 'text-[#777777] hover:bg-[#282828] active:bg-[#333333]'
               }`}
@@ -396,10 +481,26 @@ function ContentPageInner() {
         className="pointer-events-none fixed bottom-0 left-1/2 z-20 w-full max-w-[440px] -translate-x-1/2"
         style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom, 0px) + 32px)' }}
       >
-        <div className="flex justify-end px-4">
+        <div className="flex flex-col items-end gap-2 px-4">
+          {isGuest && (
+            <button
+              type="button"
+              onClick={() => setShowLoginNudge(true)}
+              className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-[#3385FF]/40 bg-[#101010]/90 px-3 py-1.5 text-xs font-semibold text-[#3385FF] shadow backdrop-blur transition hover:bg-[#1a2a4a] active:bg-[#1f3060]"
+            >
+              <span className="text-slate-400">무료 저장</span>
+              <span>{guestCount}/{GUEST_LIMIT}</span>
+            </button>
+          )}
           <button
             type="button"
-            onClick={() => setShowCreate(true)}
+            onClick={() => {
+              if (isGuest && guestCount >= GUEST_LIMIT) {
+                setShowLoginNudge(true);
+              } else {
+                setShowCreate(true);
+              }
+            }}
             className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-[#3385FF] px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-[#2f78f0] active:bg-[#2669d9]"
           >
             <Plus size={16} />
@@ -407,6 +508,51 @@ function ContentPageInner() {
           </button>
         </div>
       </div>
+
+      {/* 로그인 유도 바텀시트 */}
+      {showLoginNudge && (
+        <>
+          <div onClick={() => setShowLoginNudge(false)} className="fixed inset-0 z-30 bg-black/60" />
+          <div className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-[440px]">
+            <div
+              className="rounded-t-2xl border border-[#323232] bg-[#1E1E1E] p-6 shadow-2xl"
+              style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
+            >
+              <div className="mb-5 flex justify-end">
+                <button
+                  onClick={() => setShowLoginNudge(false)}
+                  className="rounded-[8px] p-1.5 text-[#777777] transition hover:bg-[#282828]"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="mb-6 text-center">
+                <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#3385FF]/15 text-3xl">
+                  📦
+                </div>
+                <h2 className="text-lg font-bold text-slate-100">
+                  무료 저장 {GUEST_LIMIT}개를 모두 사용했어요
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-[#777777]">
+                  로그인하면 SaveBox를 무제한으로<br />자유롭게 사용할 수 있어요.
+                </p>
+              </div>
+              <GoogleMaterialButton
+                onClick={handleGoogleSignIn}
+                disabled={nudgeLoading}
+                isLoading={nudgeLoading}
+                label="Sign in with Google"
+              />
+              <button
+                onClick={() => setShowLoginNudge(false)}
+                className="mt-3 w-full py-2.5 text-sm font-semibold text-[#616161] transition hover:text-[#999999]"
+              >
+                나중에
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* 콘텐츠 추가 바텀시트 */}
       {showCreate && (

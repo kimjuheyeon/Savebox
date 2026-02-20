@@ -3,6 +3,7 @@ import '@/styles/globals.css';
 export const metadata = {
   title: 'SaveBox Prototype',
   description: 'SNS 콘텐츠 통합 북마크 서비스 프로토타입',
+  manifest: '/manifest.json',
 };
 
 export const viewport = {

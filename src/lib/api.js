@@ -1,4 +1,5 @@
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getGuestContents, addGuestContent, removeGuestContent } from '@/lib/guestStorage';
 
 function getClient() {
   return getSupabaseBrowserClient();
@@ -96,7 +97,12 @@ export async function deleteContentsInCollections(collectionIds) {
 export async function fetchContents({ collectionId, source, q, limit = 50, offset = 0 } = {}) {
   const supabase = getClient();
   const userId = await getUserId();
-  if (!userId) return { contents: [], total: 0 };
+  if (!userId) {
+    let items = getGuestContents();
+    if (source) items = items.filter((i) => i.source === source);
+    if (q) items = items.filter((i) => (i.title || '').includes(q) || (i.memo || '').includes(q));
+    return { contents: items, total: items.length };
+  }
 
   let query = supabase
     .from('contents')
@@ -130,7 +136,15 @@ export async function fetchContent(id) {
 export async function createContent({ title, url, thumbnailUrl, memo, source, colorTag, collectionId }) {
   const supabase = getClient();
   const userId = await getUserId();
-  if (!userId) throw new Error('로그인이 필요합니다.');
+  if (!userId) {
+    return addGuestContent({
+      title,
+      url,
+      thumbnail_url: thumbnailUrl || null,
+      memo: memo || null,
+      source: source || 'Other',
+    });
+  }
 
   const { data, error } = await supabase
     .from('contents')
@@ -174,6 +188,10 @@ export async function updateContent(id, updates) {
 }
 
 export async function deleteContent(id) {
+  if (typeof id === 'string' && id.startsWith('guest_')) {
+    removeGuestContent(id);
+    return;
+  }
   const supabase = getClient();
   const { error } = await supabase
     .from('contents')

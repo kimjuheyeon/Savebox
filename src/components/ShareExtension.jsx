@@ -1,32 +1,88 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Plus, RotateCcw } from 'lucide-react';
+import { X, Plus, RotateCcw, Loader2 } from 'lucide-react';
 import { ICON_BUTTON_BASE_CLASS, ICON_BUTTON_ICON_SIZE, ICON_BUTTON_SIZE_CLASS } from '@/lib/iconUI';
 import ActionSnackbar from '@/components/ActionSnackbar';
+import { fetchCollections, createContent, createCollection } from '@/lib/api';
+import { getSourceMeta } from '@/lib/prototypeData';
 
-const SHARED_CONTENT = {
+const DEMO_CONTENT = {
   title: '비트코인 소름 돋는 예언 하나 할게',
   thumbnail: '/thumbnail/dd1994d5301ea079533443fdf481775d.jpg',
   source: 'Threads',
 };
 
-const INITIAL_COLLECTIONS = [
+const DEMO_COLLECTIONS = [
   { id: 'c1', name: 'UI 레퍼런스', thumbnail: '/thumbnail/2aca272e2362eaf5a34383381000c9a7.jpg' },
   { id: 'c2', name: '개발 아티클', thumbnail: '/thumbnail/6912ebf347095999d3b8597ec1c0c887.jpg' },
   { id: 'c3', name: '맛집 리스트', thumbnail: '/thumbnail/b1d0c3bfdcd04d80dd8fde350cdf2946.jpg' },
   { id: 'c4', name: '나중에 볼 영상', thumbnail: '/thumbnail/d7316f9967030db54150c3bf12937544.jpg' },
 ];
 
-export default function ShareExtension() {
+export default function ShareExtension({ sharedUrl = '', sharedTitle = '' }) {
+  const isLiveMode = Boolean(sharedUrl);
+
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState('list');
-  const [collections, setCollections] = useState(INITIAL_COLLECTIONS);
+  const [collections, setCollections] = useState(isLiveMode ? [] : DEMO_COLLECTIONS);
   const [newCollectionName, setNewCollectionName] = useState('');
   const [savedCollection, setSavedCollection] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [loadingMeta, setLoadingMeta] = useState(false);
+
+  // 실제 공유 데이터에서 파싱한 콘텐츠 정보
+  const [content, setContent] = useState(
+    isLiveMode
+      ? { title: sharedTitle || sharedUrl, thumbnail: null, source: 'Other', url: sharedUrl }
+      : { ...DEMO_CONTENT, url: '' }
+  );
 
   const inputRef = useRef(null);
 
+  // 실제 모드: 컬렉션 로드 + og:meta 파싱
+  useEffect(() => {
+    if (!isLiveMode) return;
+
+    async function init() {
+      // 컬렉션 목록 로드
+      try {
+        const cols = await fetchCollections();
+        setCollections(cols.filter((c) => !c.is_system));
+      } catch {
+        setCollections([]);
+      }
+
+      // URL에서 메타데이터 파싱
+      if (sharedUrl) {
+        setLoadingMeta(true);
+        try {
+          const res = await fetch('/api/og-meta', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: sharedUrl }),
+          });
+          if (res.ok) {
+            const meta = await res.json();
+            setContent({
+              title: meta.title || sharedTitle || sharedUrl,
+              thumbnail: meta.thumbnailUrl || null,
+              source: meta.source || 'Other',
+              url: meta.url || sharedUrl,
+            });
+          }
+        } catch {
+          // 파싱 실패해도 URL은 유지
+        } finally {
+          setLoadingMeta(false);
+        }
+      }
+    }
+
+    init();
+  }, [isLiveMode, sharedUrl, sharedTitle]);
+
+  // 시트 열기 (0.8초 후)
   useEffect(() => {
     const timer = setTimeout(() => setIsOpen(true), 800);
     return () => clearTimeout(timer);
@@ -38,13 +94,13 @@ export default function ShareExtension() {
     }
   }, [step]);
 
+  // 저장 성공 후 2초 자동 닫기
   useEffect(() => {
     let interval;
     if (step === 'success') {
       const startTime = Date.now();
       interval = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        if (elapsed >= 2000) {
+        if (Date.now() - startTime >= 2000) {
           handleClose();
         }
       }, 50);
@@ -60,21 +116,60 @@ export default function ShareExtension() {
     }, 500);
   };
 
-  const handleSaveToCollection = (collection) => {
+  const handleSaveToCollection = async (collection) => {
+    if (isLiveMode) {
+      setSaving(true);
+      try {
+        await createContent({
+          title: content.title,
+          url: content.url,
+          thumbnailUrl: content.thumbnail,
+          source: content.source,
+          collectionId: collection.id,
+        });
+      } catch {
+        // 게스트 저장도 지원 (api.js에서 처리)
+      } finally {
+        setSaving(false);
+      }
+    }
+
     setSavedCollection(collection);
     setIsOpen(false);
     setStep('success');
   };
 
-  const handleCreateAndSave = () => {
+  const handleCreateAndSave = async () => {
     if (!newCollectionName.trim()) return;
-    const newCollection = {
-      id: `c-${Date.now()}`,
-      name: newCollectionName,
-      color: 'bg-[#1E1E1E] text-slate-100',
-    };
-    setCollections([newCollection, ...collections]);
-    setSavedCollection(newCollection);
+
+    if (isLiveMode) {
+      setSaving(true);
+      try {
+        const newCol = await createCollection({
+          name: newCollectionName.trim(),
+        });
+        await createContent({
+          title: content.title,
+          url: content.url,
+          thumbnailUrl: content.thumbnail,
+          source: content.source,
+          collectionId: newCol.id,
+        });
+        setSavedCollection(newCol);
+      } catch {
+        setSavedCollection({ name: newCollectionName.trim() });
+      } finally {
+        setSaving(false);
+      }
+    } else {
+      const newCollection = {
+        id: `c-${Date.now()}`,
+        name: newCollectionName,
+      };
+      setCollections([newCollection, ...collections]);
+      setSavedCollection(newCollection);
+    }
+
     setNewCollectionName('');
     setIsOpen(false);
     setStep('success');
@@ -83,7 +178,7 @@ export default function ShareExtension() {
   const handleReset = () => {
     setIsOpen(false);
     setStep('list');
-    setCollections(INITIAL_COLLECTIONS);
+    if (!isLiveMode) setCollections(DEMO_COLLECTIONS);
     setNewCollectionName('');
     setSavedCollection(null);
     setTimeout(() => setIsOpen(true), 800);
@@ -93,14 +188,20 @@ export default function ShareExtension() {
     if (e.key === 'Enter') handleCreateAndSave();
   };
 
+  const sourceMeta = getSourceMeta(content.source);
+
   return (
     <div className="relative w-full h-[100dvh] bg-neutral-900 font-sans text-slate-100 overflow-hidden">
-      {/* Background: Threads Screenshot */}
-      <img
-        src="/Image/default-screen.png"
-        alt="threads background"
-        className="absolute inset-0 w-full h-full object-cover object-top"
-      />
+      {/* Background */}
+      {isLiveMode ? (
+        <div className="absolute inset-0 bg-[#101010]" />
+      ) : (
+        <img
+          src="/Image/default-screen.png"
+          alt="threads background"
+          className="absolute inset-0 w-full h-full object-cover object-top"
+        />
+      )}
 
       {/* Black Overlay */}
       <div
@@ -109,14 +210,16 @@ export default function ShareExtension() {
         }`}
       />
 
-      {/* Reset Button */}
-      <button
-        onClick={handleReset}
-        className="absolute top-[max(2rem,env(safe-area-inset-top,2rem))] right-4 z-[60] flex items-center gap-1.5 px-3 py-2 rounded-[8px] bg-[#1E1E1E]/70 backdrop-blur-sm text-white text-xs font-medium hover:bg-[#2a3347]/80 transition-colors min-h-[44px]"
-      >
-        <RotateCcw size={14} />
-        리셋
-      </button>
+      {/* Reset Button (데모 모드 전용) */}
+      {!isLiveMode && (
+        <button
+          onClick={handleReset}
+          className="absolute top-[max(2rem,env(safe-area-inset-top,2rem))] right-4 z-[60] flex items-center gap-1.5 px-3 py-2 rounded-[8px] bg-[#1E1E1E]/70 backdrop-blur-sm text-white text-xs font-medium hover:bg-[#2a3347]/80 transition-colors min-h-[44px]"
+        >
+          <RotateCcw size={14} />
+          리셋
+        </button>
+      )}
 
       {/* Share Extension Sheet */}
       <div
@@ -157,20 +260,33 @@ export default function ShareExtension() {
           {/* S1-02: Content Preview Card */}
           <div className="px-5 py-3">
             <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-[#1E1E1E]">
-              {SHARED_CONTENT.thumbnail ? (
+              {content.thumbnail ? (
                 <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0">
-                  <img src={SHARED_CONTENT.thumbnail} alt="" className="w-full h-full object-cover" />
+                  <img src={content.thumbnail} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                 </div>
               ) : (
                 <div className="w-12 h-12 rounded-xl shrink-0 bg-[#212b42] flex items-center justify-center">
-                  <span className="text-lg font-bold text-[#777777]">
-                    {SHARED_CONTENT.title.charAt(0)}
-                  </span>
+                  {sourceMeta.iconSrc ? (
+                    <img src={sourceMeta.iconSrc} alt={content.source} className="h-6 w-6 object-contain opacity-60" />
+                  ) : (
+                    <span className="text-lg font-bold text-[#777777]">
+                      {(content.title || 'S').charAt(0)}
+                    </span>
+                  )}
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-100 truncate">{SHARED_CONTENT.title}</p>
-                <p className="text-xs text-[#616161] mt-0.5">{SHARED_CONTENT.source}에서 공유됨</p>
+                {loadingMeta ? (
+                  <div className="flex items-center gap-2 text-sm text-[#616161]">
+                    <Loader2 size={14} className="animate-spin" />
+                    메타데이터 가져오는 중...
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm font-medium text-slate-100 truncate">{content.title}</p>
+                    <p className="text-xs text-[#616161] mt-0.5">{content.source}에서 공유됨</p>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -182,10 +298,31 @@ export default function ShareExtension() {
               <div className="animate-in fade-in slide-in-from-right-4">
                 <div className="space-y-1">
                   <div className="overflow-y-auto pr-1 custom-scrollbar" style={{ maxHeight: 'min(280px, 35dvh)' }}>
+                    {/* 미분류 저장 옵션 (실제 모드) */}
+                    {isLiveMode && (
+                      <button
+                        onClick={() => handleSaveToCollection({ id: null, name: '미분류' })}
+                        disabled={saving}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#212b42] active:bg-[#283350] transition-colors text-left min-h-[56px]"
+                      >
+                        <div className="w-10 h-10 rounded-xl shrink-0 bg-[#212b42] flex items-center justify-center text-sm font-bold text-[#616161]">
+                          *
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-slate-100">미분류</p>
+                          <p className="text-xs text-[#616161]">컬렉션 없이 바로 저장</p>
+                        </div>
+                        <div className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-xl text-[#777777]`}>
+                          <Plus size={ICON_BUTTON_ICON_SIZE} />
+                        </div>
+                      </button>
+                    )}
+
                     {collections.map((col) => (
                       <button
                         key={col.id}
                         onClick={() => handleSaveToCollection(col)}
+                        disabled={saving}
                         className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#212b42] active:bg-[#283350] transition-colors text-left min-h-[56px]"
                       >
                         <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-[#212b42]">
@@ -199,7 +336,7 @@ export default function ShareExtension() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-slate-100 truncate">{col.name}</p>
-                          <p className="text-xs text-[#616161]">12개 항목</p>
+                          <p className="text-xs text-[#616161]">{col.item_count ?? 0}개 항목</p>
                         </div>
                         <div
                           className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-xl text-[#777777] hover:bg-[#212b42] hover:text-indigo-300 transition-colors`}
@@ -208,6 +345,10 @@ export default function ShareExtension() {
                         </div>
                       </button>
                     ))}
+
+                    {isLiveMode && collections.length === 0 && (
+                      <p className="py-6 text-center text-sm text-[#616161]">컬렉션이 없어요. 미분류로 저장하거나 새 컬렉션을 만드세요.</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -238,20 +379,30 @@ export default function ShareExtension() {
                 </div>
                 <button
                   onClick={handleCreateAndSave}
-                  disabled={!newCollectionName.trim()}
+                  disabled={!newCollectionName.trim() || saving}
                   className={`w-full py-3.5 rounded-xl font-bold text-white transition-all transform active:scale-95 min-h-[48px] ${
-                    newCollectionName.trim()
+                    newCollectionName.trim() && !saving
                       ? 'bg-[#3385FF] shadow-lg shadow-indigo-200/30'
                       : 'bg-[#2a3347] cursor-not-allowed'
                   }`}
                 >
-                  완료 및 저장
+                  {saving ? '저장 중...' : '완료 및 저장'}
                 </button>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Saving overlay */}
+      {saving && (
+        <div className="absolute inset-0 z-[55] flex items-center justify-center">
+          <div className="rounded-2xl bg-[#1E1E1E]/90 backdrop-blur px-6 py-4 flex items-center gap-3">
+            <Loader2 size={20} className="animate-spin text-[#3385FF]" />
+            <span className="text-sm font-semibold text-slate-100">저장 중...</span>
+          </div>
+        </div>
+      )}
 
       <ActionSnackbar
         open={step === 'success'}
