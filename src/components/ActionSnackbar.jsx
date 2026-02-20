@@ -21,9 +21,9 @@ export default function ActionSnackbar({
       style={{ bottom: 'calc(4.5rem + env(safe-area-inset-bottom, 0px))', ...style }}
     >
       <div
-        className="mx-auto max-w-[440px] flex items-center justify-between gap-3 px-4 py-3.5 rounded-xl"
+        className="mx-auto max-w-[440px] flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl backdrop-blur-xl"
         style={{
-          backgroundColor: '#1E1E1E',
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
         }}
       >
         <div className="flex min-w-0 items-center gap-2.5">

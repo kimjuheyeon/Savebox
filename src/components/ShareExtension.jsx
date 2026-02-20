@@ -191,10 +191,11 @@ export default function ShareExtension({ sharedUrl = '', sharedTitle = '' }) {
   const sourceMeta = getSourceMeta(content.source);
 
   return (
-    <div className="relative w-full h-[100dvh] bg-neutral-900 font-sans text-slate-100 overflow-hidden">
+    <div className="min-h-[100dvh] bg-[#0f172a] flex justify-center font-sans">
+    <div className="relative w-full max-w-[440px] h-[100dvh] overflow-hidden">
       {/* Background */}
       {isLiveMode ? (
-        <div className="absolute inset-0 bg-[#101010]" />
+        <div className="absolute inset-0 bg-[#0f172a]" />
       ) : (
         <img
           src="/Image/default-screen.png"
@@ -214,7 +215,7 @@ export default function ShareExtension({ sharedUrl = '', sharedTitle = '' }) {
       {!isLiveMode && (
         <button
           onClick={handleReset}
-          className="absolute top-[max(2rem,env(safe-area-inset-top,2rem))] right-4 z-[60] flex items-center gap-1.5 px-3 py-2 rounded-[8px] bg-[#1E1E1E]/70 backdrop-blur-sm text-white text-xs font-medium hover:bg-[#2a3347]/80 transition-colors min-h-[44px]"
+          className="absolute top-[max(2rem,env(safe-area-inset-top,2rem))] right-4 z-[60] flex items-center gap-1.5 px-3 py-2 rounded-[8px] bg-[#1E1E1E]/80 backdrop-blur-sm text-[#e2e8f0] text-xs font-medium border border-[#323232] hover:bg-[#212b42]/90 transition-colors min-h-[44px]"
         >
           <RotateCcw size={14} />
           리셋
@@ -228,12 +229,12 @@ export default function ShareExtension({ sharedUrl = '', sharedTitle = '' }) {
         }`}
       >
         <div
-          className="rounded-t-2xl bg-[#1E1E1E] shadow-[0_-10px_40px_rgba(0,0,0,0.35)] w-full overflow-hidden"
+          className="rounded-t-2xl bg-[#1E1E1E] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] w-full overflow-hidden"
           style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
         >
           {/* Header Indicator */}
           <div className="w-full flex justify-center pt-3 pb-1">
-            <div className="w-12 h-1.5 rounded-full bg-[#2a3347]"></div>
+            <div className="w-12 h-1.5 rounded-full bg-[#323232]"></div>
           </div>
 
           {/* Header */}
@@ -242,15 +243,15 @@ export default function ShareExtension({ sharedUrl = '', sharedTitle = '' }) {
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleClose}
-                  className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} -ml-1.5 text-[#777777] hover:text-[#ffffff]`}
+                  className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} -ml-1.5 text-[#616161] hover:text-[#e2e8f0]`}
                 >
                   <X size={ICON_BUTTON_ICON_SIZE} />
                 </button>
-                <h2 className="text-lg font-bold text-slate-100">컬렉션에 저장</h2>
+                <h2 className="text-lg font-bold text-[#e2e8f0]">컬렉션에 저장</h2>
               </div>
               <button
                 onClick={() => setStep('create')}
-                className="text-sm font-semibold text-indigo-300 hover:text-indigo-200 transition-colors min-h-[44px] flex items-center px-2"
+                className="text-sm font-semibold text-indigo-400 hover:text-indigo-300 transition-colors min-h-[44px] flex items-center px-2"
               >
                 새 컬렉션
               </button>
@@ -259,7 +260,7 @@ export default function ShareExtension({ sharedUrl = '', sharedTitle = '' }) {
 
           {/* S1-02: Content Preview Card */}
           <div className="px-5 py-3">
-            <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-[#1E1E1E]">
+            <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-[#0f172a]">
               {content.thumbnail ? (
                 <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0">
                   <img src={content.thumbnail} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
@@ -269,7 +270,7 @@ export default function ShareExtension({ sharedUrl = '', sharedTitle = '' }) {
                   {sourceMeta.iconSrc ? (
                     <img src={sourceMeta.iconSrc} alt={content.source} className="h-6 w-6 object-contain opacity-60" />
                   ) : (
-                    <span className="text-lg font-bold text-[#777777]">
+                    <span className="text-lg font-bold text-[#616161]">
                       {(content.title || 'S').charAt(0)}
                     </span>
                   )}
@@ -283,7 +284,7 @@ export default function ShareExtension({ sharedUrl = '', sharedTitle = '' }) {
                   </div>
                 ) : (
                   <>
-                    <p className="text-sm font-medium text-slate-100 truncate">{content.title}</p>
+                    <p className="text-sm font-medium text-[#e2e8f0] truncate">{content.title}</p>
                     <p className="text-xs text-[#616161] mt-0.5">{content.source}에서 공유됨</p>
                   </>
                 )}
@@ -309,10 +310,10 @@ export default function ShareExtension({ sharedUrl = '', sharedTitle = '' }) {
                           *
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-slate-100">미분류</p>
+                          <p className="text-sm font-semibold text-[#e2e8f0]">미분류</p>
                           <p className="text-xs text-[#616161]">컬렉션 없이 바로 저장</p>
                         </div>
-                        <div className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-xl text-[#777777]`}>
+                        <div className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-xl text-[#616161]`}>
                           <Plus size={ICON_BUTTON_ICON_SIZE} />
                         </div>
                       </button>
@@ -335,11 +336,11 @@ export default function ShareExtension({ sharedUrl = '', sharedTitle = '' }) {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-slate-100 truncate">{col.name}</p>
+                          <p className="text-sm font-semibold text-[#e2e8f0] truncate">{col.name}</p>
                           <p className="text-xs text-[#616161]">{col.item_count ?? 0}개 항목</p>
                         </div>
                         <div
-                          className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-xl text-[#777777] hover:bg-[#212b42] hover:text-indigo-300 transition-colors`}
+                          className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-xl text-[#616161] hover:bg-[#1a2540] hover:text-indigo-400 transition-colors`}
                         >
                           <Plus size={ICON_BUTTON_ICON_SIZE} />
                         </div>
@@ -360,18 +361,18 @@ export default function ShareExtension({ sharedUrl = '', sharedTitle = '' }) {
                 <div className="mb-4">
                   <button
                     onClick={() => setStep('list')}
-                    className="text-xs text-[#616161] flex items-center gap-1 mb-4 hover:text-[#ffffff] min-h-[44px]"
+                    className="text-xs text-[#616161] flex items-center gap-1 mb-4 hover:text-[#e2e8f0] min-h-[44px]"
                   >
                     ← 뒤로가기
                   </button>
-                  <label className="text-sm font-semibold text-slate-100 block mb-2">
+                  <label className="text-sm font-semibold text-[#e2e8f0] block mb-2">
                     새 컬렉션 이름
                   </label>
                   <input
                     ref={inputRef}
                     type="text"
                     placeholder="예: 인테리어 아이디어"
-                    className="w-full p-4 text-base border-b-2 border-indigo-500 focus:outline-none bg-transparent placeholder:text-[#616161]"
+                    className="w-full p-4 text-base text-[#e2e8f0] border-b-2 border-indigo-500 focus:outline-none bg-transparent placeholder:text-[#616161]"
                     value={newCollectionName}
                     onChange={(e) => setNewCollectionName(e.target.value)}
                     onKeyDown={handleKeyDown}
@@ -382,8 +383,8 @@ export default function ShareExtension({ sharedUrl = '', sharedTitle = '' }) {
                   disabled={!newCollectionName.trim() || saving}
                   className={`w-full py-3.5 rounded-xl font-bold text-white transition-all transform active:scale-95 min-h-[48px] ${
                     newCollectionName.trim() && !saving
-                      ? 'bg-[#3385FF] shadow-lg shadow-indigo-200/30'
-                      : 'bg-[#2a3347] cursor-not-allowed'
+                      ? 'bg-indigo-600 shadow-lg shadow-indigo-900/40'
+                      : 'bg-[#212b42] text-[#616161] cursor-not-allowed'
                   }`}
                 >
                   {saving ? '저장 중...' : '완료 및 저장'}
@@ -397,9 +398,9 @@ export default function ShareExtension({ sharedUrl = '', sharedTitle = '' }) {
       {/* Saving overlay */}
       {saving && (
         <div className="absolute inset-0 z-[55] flex items-center justify-center">
-          <div className="rounded-2xl bg-[#1E1E1E]/90 backdrop-blur px-6 py-4 flex items-center gap-3">
-            <Loader2 size={20} className="animate-spin text-[#3385FF]" />
-            <span className="text-sm font-semibold text-slate-100">저장 중...</span>
+          <div className="rounded-2xl bg-[#1E1E1E]/95 backdrop-blur px-6 py-4 flex items-center gap-3 border border-[#323232]">
+            <Loader2 size={20} className="animate-spin text-indigo-400" />
+            <span className="text-sm font-semibold text-[#e2e8f0]">저장 중...</span>
           </div>
         </div>
       )}
@@ -412,6 +413,7 @@ export default function ShareExtension({ sharedUrl = '', sharedTitle = '' }) {
         className="fixed inset-x-0 z-[70] px-4"
         style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
       />
+    </div>
     </div>
   );
 }
