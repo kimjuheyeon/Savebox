@@ -8,6 +8,15 @@ function getEnv() {
   return { url, key };
 }
 
+const isStaticHost = typeof window !== 'undefined' &&
+  (process.env.NEXT_PUBLIC_SITE_URL || '').includes('github.io');
+
+function createClient(url, key) {
+  return createBrowserClient(url, key, isStaticHost ? {
+    auth: { flowType: 'implicit' },
+  } : undefined);
+}
+
 export function getSupabaseBrowserClient() {
   const { url, key } = getEnv();
   if (!url || !key) {
@@ -15,7 +24,7 @@ export function getSupabaseBrowserClient() {
   }
 
   if (!_browserClient) {
-    _browserClient = createBrowserClient(url, key);
+    _browserClient = createClient(url, key);
   }
   return _browserClient;
 }
@@ -27,7 +36,7 @@ export function getSupabaseBrowserClientSafe() {
   }
 
   if (!_browserClient) {
-    _browserClient = createBrowserClient(url, key);
+    _browserClient = createClient(url, key);
   }
   return _browserClient;
 }
