@@ -7,7 +7,7 @@
     "dev": "next dev",
     "dev:3001": "next dev --hostname 127.0.0.1 --port 3001",
     "dev:clean": "npm run clean && next dev --port 3000 --hostname 127.0.0.1",
-    "dev:fix": "npm run stop || true && npm run dev:3001",
+    "dev:fix": "npm run stop || true && npm run dev:clean",
     "stop": "for p in 3000 3001 3002 3003; do lsof -tiTCP:$p -sTCP:LISTEN -nP; done | xargs -r kill",
     "clean": "rm -rf .next",
     "build": "next build",

@@ -5,3 +5,4 @@ backup/
 ~$*
 .env.local
 .env.local.example
+out/

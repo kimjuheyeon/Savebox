@@ -72,39 +72,60 @@ export async function POST(request) {
     let thumbnailUrl = null;
     let description = null;
 
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000);
-
-      // Meta 계열(Threads/Instagram)은 facebookexternalhit UA에만 og 태그 응답
-      const isMeta = source === 'Threads' || source === 'Instagram';
-      const htmlUserAgent = isMeta
-        ? 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'
-        : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
-
-      const response = await fetch(parsedUrl.href, {
-        signal: controller.signal,
-        headers: {
-          'User-Agent': htmlUserAgent,
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
-        },
-        redirect: 'follow',
-      });
-      clearTimeout(timeout);
-
-      if (response.ok) {
-        const contentType = response.headers.get('content-type') || '';
-        if (contentType.includes('text/html')) {
-          const html = await response.text();
-          const meta = extractMeta(html);
-          if (meta.ogTitle) title = meta.ogTitle;
-          if (meta.ogImage) thumbnailUrl = meta.ogImage;
-          if (meta.ogDescription) description = meta.ogDescription;
+    // YouTube는 oEmbed API로 정확한 제목/썸네일을 가져옴
+    if (source === 'YouTube') {
+      try {
+        const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(parsedUrl.href)}&format=json`;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+        const res = await fetch(oembedUrl, { signal: controller.signal });
+        clearTimeout(timeout);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.title) title = data.title;
+          if (data.thumbnail_url) thumbnailUrl = data.thumbnail_url;
         }
+      } catch {
+        // oEmbed 실패 시 아래 일반 fetch로 fallback
       }
-    } catch {
-      // fetch 실패해도 도메인 기반 정보는 반환
+    }
+
+    // oEmbed에서 제목을 못 가져왔거나 YouTube가 아닌 경우 일반 HTML fetch
+    if (!title || title === fallbackTitle) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
+
+        // Meta 계열(Threads/Instagram)은 facebookexternalhit UA에만 og 태그 응답
+        const isMeta = source === 'Threads' || source === 'Instagram';
+        const htmlUserAgent = isMeta
+          ? 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'
+          : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
+        const response = await fetch(parsedUrl.href, {
+          signal: controller.signal,
+          headers: {
+            'User-Agent': htmlUserAgent,
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
+          },
+          redirect: 'follow',
+        });
+        clearTimeout(timeout);
+
+        if (response.ok) {
+          const contentType = response.headers.get('content-type') || '';
+          if (contentType.includes('text/html')) {
+            const html = await response.text();
+            const meta = extractMeta(html);
+            if (meta.ogTitle) title = meta.ogTitle;
+            if (meta.ogImage && !thumbnailUrl) thumbnailUrl = meta.ogImage;
+            if (meta.ogDescription) description = meta.ogDescription;
+          }
+        }
+      } catch {
+        // fetch 실패해도 도메인 기반 정보는 반환
+      }
     }
 
     // 상대경로 이미지를 절대 URL로 변환

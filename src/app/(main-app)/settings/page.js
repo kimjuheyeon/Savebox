@@ -215,7 +215,7 @@ export default function SettingsPage() {
         const disabled = OAUTH_PROVIDER_DISABLED_PATTERN.test(error.message || '');
         if (conflict) {
           showToast(buildSocialConflictMessage(provider));
-          router.push('/auth/login');
+          router.push('/settings');
           return;
         }
         if (disabled) {
@@ -275,11 +275,10 @@ export default function SettingsPage() {
         await supabase.auth.signOut();
       }
 
-      await fetch('/api/auth/logout', { method: 'POST' });
       setSessionUser(null);
       setAuthState({ type: AUTH_STATES.anonymous, email: '비로그인 상태' });
       showToast('로그아웃되었습니다.');
-      router.push('/auth/login');
+      router.push('/settings');
     } catch {
       showToast('로그아웃에 실패했어요.');
     } finally {
@@ -307,7 +306,6 @@ export default function SettingsPage() {
         await supabase.auth.signOut();
       }
 
-      await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
       setSessionUser(null);
       setAuthState({ type: AUTH_STATES.anonymous, email: '비로그인 상태' });
       showToast('계정이 삭제되었어요.');
@@ -463,7 +461,13 @@ export default function SettingsPage() {
           <section className="mb-4 px-4 pt-4">
             <h2 className="mb-2 px-2 text-xs font-semibold text-[#616161]">계정</h2>
             {authState.type === AUTH_STATES.anonymous ? (
-              <div className="px-1">{accountRowsByState()}</div>
+              <div className="px-1">
+                {accountRowsByState()}
+                <div className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/15 px-4 py-3">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-[10px]">✓</span>
+                  <p className="text-[13px] font-medium text-emerald-400">저장한 콘텐츠는 로그인 시 자동으로 옮겨져요</p>
+                </div>
+              </div>
             ) : (
               <div className="overflow-hidden rounded-[14px] border border-[#323232] bg-[#1E1E1E]">
                 <div className="space-y-1 p-1">{accountRowsByState()}</div>

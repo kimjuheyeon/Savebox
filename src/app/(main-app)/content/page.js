@@ -87,26 +87,27 @@ function ContentPageInner() {
         const guest = !session?.user?.id;
         setIsGuest(guest);
 
-        // 로그인 직후 게스트 데이터 마이그레이션 (세션당 1회만 실행)
+        // 로그인 직후 게스트 데이터 마이그레이션
         if (!guest) {
-          const alreadyMigrated = sessionStorage.getItem('savebox_guest_migrated');
           const guestItems = getGuestContents();
-          if (guestItems.length > 0 && !alreadyMigrated) {
-            const results = await Promise.allSettled(
-              guestItems.map((item) =>
-                createContent({
-                  title: item.title,
-                  url: item.url,
-                  thumbnailUrl: item.thumbnail_url,
-                  memo: item.memo,
-                  source: item.source,
-                })
-              )
-            );
-            const allSuccess = results.every((r) => r.status === 'fulfilled');
-            if (allSuccess) {
-              sessionStorage.setItem('savebox_guest_migrated', '1');
-              clearGuestContents();
+          if (guestItems.length > 0) {
+            // 즉시 localStorage를 비워서 중복 실행 방지
+            clearGuestContents();
+            const userId = session.user.id;
+            const rows = guestItems.map((item) => ({
+              user_id: userId,
+              title: item.title,
+              url: item.url,
+              thumbnail_url: item.thumbnail_url || null,
+              memo: item.memo || null,
+              source: item.source || 'Other',
+            }));
+            const { error: migrateError } = await supabase
+              .from('contents')
+              .insert(rows);
+            if (migrateError) {
+              // 실패 시 게스트 데이터 복원
+              localStorage.setItem('savebox_guest_contents', JSON.stringify(guestItems));
             }
           }
         }
@@ -213,8 +214,9 @@ function ContentPageInner() {
       });
       if (!res.ok) return;
       const meta = await res.json();
-      // "@handle" 포함 계정명 형식 제목 감지 (영문 "on", 한국어 "의/님" 등 플랫폼 공통)
-      const isGenericTitle = /\(@[\w.]+\)/.test(meta.title || '');
+      // "@handle" 포함 계정명 형식 또는 단순 플랫폼명만 있는 제목 감지
+      const isGenericTitle = /\(@[\w.]+\)/.test(meta.title || '')
+        || /^(YouTube|Instagram|TikTok|Pinterest|Threads|X|Twitter)$/i.test((meta.title || '').trim());
       const betterTitle = (isGenericTitle && meta.description) ? meta.description.slice(0, 80) : meta.title;
       if (betterTitle && !newTitle) setNewTitle(betterTitle);
       if (meta.source) setNewSource(meta.source);
@@ -539,6 +541,10 @@ function ContentPageInner() {
                 <p className="mt-2 text-sm leading-relaxed text-[#777777]">
                   로그인하면 SaveBox를 무제한으로<br />자유롭게 사용할 수 있어요.
                 </p>
+                <div className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/15 px-4 py-3">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-[10px]">✓</span>
+                  <p className="text-[13px] font-medium text-emerald-400">저장한 콘텐츠는 로그인 시 자동으로 옮겨져요</p>
+                </div>
               </div>
               <GoogleMaterialButton
                 onClick={handleGoogleSignIn}
@@ -591,8 +597,12 @@ function ContentPageInner() {
                       autoFocus
                       className="h-11 w-full rounded-xl border border-[#323232] bg-[#1E1E1E] px-3 text-sm text-slate-100 placeholder:text-[#616161] outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 pr-9"
                     />
-                    {fetching && (
+                    {fetching ? (
                       <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-indigo-400" />
+                    ) : newUrl && (
+                      <button type="button" onClick={() => { setNewUrl(''); setNewThumbnail(''); setNewTitle(''); setNewSource('Other'); }} className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center text-[#616161] hover:text-slate-100 transition-colors">
+                        <X size={16} />
+                      </button>
                     )}
                   </div>
                 </label>
@@ -619,13 +629,20 @@ function ContentPageInner() {
                   <span className="mb-1 block text-xs font-semibold text-[#777777]">
                     콘텐츠 이름 <span className="font-normal text-[#616161]">(비워두면 자동 설정)</span>
                   </span>
-                  <input
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    placeholder={fetching ? '자동으로 가져오는 중...' : '저장할 콘텐츠의 제목을 입력하세요'}
-                    maxLength={80}
-                    className="h-11 w-full rounded-xl border border-[#323232] bg-[#1E1E1E] px-3 text-sm text-slate-100 placeholder:text-[#616161] outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30"
-                  />
+                  <div className="relative">
+                    <input
+                      value={newTitle}
+                      onChange={(e) => setNewTitle(e.target.value)}
+                      placeholder={fetching ? '자동으로 가져오는 중...' : '저장할 콘텐츠의 제목을 입력하세요'}
+                      maxLength={80}
+                      className="h-11 w-full rounded-xl border border-[#323232] bg-[#1E1E1E] px-3 pr-9 text-sm text-slate-100 placeholder:text-[#616161] outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30"
+                    />
+                    {newTitle && (
+                      <button type="button" onClick={() => setNewTitle('')} className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center text-[#616161] hover:text-slate-100 transition-colors">
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
                 </label>
 
                 <label className="block">
@@ -661,13 +678,20 @@ function ContentPageInner() {
 
                 <label className="block">
                   <span className="mb-1 block text-xs font-semibold text-[#777777]">메모</span>
-                  <textarea
-                    value={newMemo}
-                    onChange={(e) => setNewMemo(e.target.value)}
-                    placeholder="메모를 입력하세요"
-                    maxLength={500}
-                    className="h-24 w-full resize-none rounded-xl border border-[#323232] bg-[#1E1E1E] px-3 py-2.5 text-sm text-slate-100 placeholder:text-[#616161] outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30"
-                  />
+                  <div className="relative">
+                    <textarea
+                      value={newMemo}
+                      onChange={(e) => setNewMemo(e.target.value)}
+                      placeholder="메모를 입력하세요"
+                      maxLength={500}
+                      className="h-24 w-full resize-none rounded-xl border border-[#323232] bg-[#1E1E1E] px-3 pr-9 py-2.5 text-sm text-slate-100 placeholder:text-[#616161] outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30"
+                    />
+                    {newMemo && (
+                      <button type="button" onClick={() => setNewMemo('')} className="absolute right-3 top-3 flex items-center justify-center text-[#616161] hover:text-slate-100 transition-colors">
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
                 </label>
               </div>
 
