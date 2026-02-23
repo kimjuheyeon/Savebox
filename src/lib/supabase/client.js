@@ -8,13 +8,10 @@ function getEnv() {
   return { url, key };
 }
 
-const isStaticHost = typeof window !== 'undefined' &&
-  (process.env.NEXT_PUBLIC_SITE_URL || '').includes('github.io');
-
 function createClient(url, key) {
-  return createBrowserClient(url, key, isStaticHost ? {
+  return createBrowserClient(url, key, {
     auth: { flowType: 'implicit' },
-  } : undefined);
+  });
 }
 
 export function getSupabaseBrowserClient() {
