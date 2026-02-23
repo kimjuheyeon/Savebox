@@ -35,9 +35,7 @@ jobs:
         run: npm ci
 
       - name: Remove server routes for static export
-        run: |
-          mv src/app/api /tmp/api_backup
-          rm -f src/app/auth/callback/route.js
+        run: mv src/app/api /tmp/api_backup
 
       - name: Build Next.js (static export)
         run: npm run build
