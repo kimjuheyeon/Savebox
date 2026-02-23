@@ -201,31 +201,65 @@ function ContentPageInner() {
     fetchedUrlRef.current = '';
   };
 
+  const detectSourceFromUrl = (url) => {
+    try {
+      const hostname = new URL(url).hostname;
+      if (/youtube\.com|youtu\.be/i.test(hostname)) return 'YouTube';
+      if (/instagram\.com/i.test(hostname)) return 'Instagram';
+      if (/(^|\.)x\.com|twitter\.com/i.test(hostname)) return 'X';
+      if (/pinterest\.com|pin\.it/i.test(hostname)) return 'Pinterest';
+      if (/tiktok\.com/i.test(hostname)) return 'TikTok';
+      if (/threads\.net|threads\.com/i.test(hostname)) return 'Threads';
+    } catch {}
+    return 'Other';
+  };
+
   const fetchOgMeta = async (url) => {
     const trimmed = url.trim();
     if (!trimmed || fetchedUrlRef.current === trimmed) return;
     fetchedUrlRef.current = trimmed;
     setFetching(true);
+
+    // URL에서 출처 즉시 감지
+    const detectedSource = detectSourceFromUrl(trimmed);
+    if (detectedSource !== 'Other') setNewSource(detectedSource);
+
     try {
+      // 서버 API 시도
       const res = await fetch('/api/og-meta', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: trimmed }),
       });
-      if (!res.ok) return;
-      const meta = await res.json();
-      // "@handle" 포함 계정명 형식 또는 단순 플랫폼명만 있는 제목 감지
-      const isGenericTitle = /\(@[\w.]+\)/.test(meta.title || '')
-        || /^(YouTube|Instagram|TikTok|Pinterest|Threads|X|Twitter)$/i.test((meta.title || '').trim());
-      const betterTitle = (isGenericTitle && meta.description) ? meta.description.slice(0, 80) : meta.title;
-      if (betterTitle && !newTitle) setNewTitle(betterTitle);
-      if (meta.source) setNewSource(meta.source);
-      if (meta.thumbnailUrl) setNewThumbnail(meta.thumbnailUrl);
-      if (meta.url) setNewUrl(meta.url);
+      if (res.ok) {
+        const meta = await res.json();
+        const isGenericTitle = /\(@[\w.]+\)/.test(meta.title || '')
+          || /^(YouTube|Instagram|TikTok|Pinterest|Threads|X|Twitter)$/i.test((meta.title || '').trim());
+        const betterTitle = (isGenericTitle && meta.description) ? meta.description.slice(0, 80) : meta.title;
+        if (betterTitle && !newTitle) setNewTitle(betterTitle);
+        if (meta.source) setNewSource(meta.source);
+        if (meta.thumbnailUrl) setNewThumbnail(meta.thumbnailUrl);
+        if (meta.url) setNewUrl(meta.url);
+        setFetching(false);
+        return;
+      }
     } catch {
-    } finally {
-      setFetching(false);
+      // 서버 API 없음 (GitHub Pages 등) → 클라이언트 fallback
     }
+
+    // 클라이언트 fallback: YouTube oEmbed
+    if (detectedSource === 'YouTube') {
+      try {
+        const oembedRes = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(trimmed)}&format=json`);
+        if (oembedRes.ok) {
+          const data = await oembedRes.json();
+          if (data.title && !newTitle) setNewTitle(data.title);
+          if (data.thumbnail_url) setNewThumbnail(data.thumbnail_url);
+        }
+      } catch {}
+    }
+
+    setFetching(false);
   };
 
   const handleUrlPaste = (e) => {
