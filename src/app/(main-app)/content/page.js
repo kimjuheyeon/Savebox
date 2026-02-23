@@ -92,9 +92,7 @@ function ContentPageInner() {
           const alreadyMigrated = sessionStorage.getItem('savebox_guest_migrated');
           const guestItems = getGuestContents();
           if (guestItems.length > 0 && !alreadyMigrated) {
-            sessionStorage.setItem('savebox_guest_migrated', '1');
-            clearGuestContents(); // 먼저 지워서 중복 실행 방지
-            await Promise.allSettled(
+            const results = await Promise.allSettled(
               guestItems.map((item) =>
                 createContent({
                   title: item.title,
@@ -105,6 +103,11 @@ function ContentPageInner() {
                 })
               )
             );
+            const allSuccess = results.every((r) => r.status === 'fulfilled');
+            if (allSuccess) {
+              sessionStorage.setItem('savebox_guest_migrated', '1');
+              clearGuestContents();
+            }
           }
         }
 
