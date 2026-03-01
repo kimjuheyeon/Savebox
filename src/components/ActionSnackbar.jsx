@@ -18,11 +18,11 @@ export default function ActionSnackbar({
       className={`fixed inset-x-0 z-[70] transition-all duration-300 ease-out ${
         open ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0 pointer-events-none'
       } ${className}`}
-      style={{ bottom: 'calc(4.5rem + env(safe-area-inset-bottom, 0px))', ...style }}
+      style={{ bottom: 'calc(4rem + 32px + env(safe-area-inset-bottom, 0px))', ...style }}
     >
       <div className="mx-auto max-w-[440px] px-4">
         <div
-          className="flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl backdrop-blur-xl"
+          className="flex h-[52px] items-center justify-between gap-3 px-4 rounded-2xl backdrop-blur-xl"
           style={{
             backgroundColor: 'rgb(30 30 30 / var(--tw-bg-opacity, 1))',
           }}
@@ -38,7 +38,7 @@ export default function ActionSnackbar({
             {actionHref ? (
               <a
                 href={actionHref}
-                className="text-sm font-semibold text-indigo-400 hover:text-indigo-300 shrink-0 ml-3 whitespace-nowrap min-h-[44px] flex items-center"
+                className="text-sm font-semibold text-indigo-400 hover:text-indigo-300 shrink-0 ml-3 whitespace-nowrap flex items-center"
               >
                 {actionLabel}
               </a>
@@ -46,7 +46,7 @@ export default function ActionSnackbar({
               <button
                 type="button"
                 onClick={onActionClick}
-                className="text-sm font-semibold text-indigo-400 hover:text-indigo-300 shrink-0 ml-3 whitespace-nowrap min-h-[44px] flex items-center"
+                className="text-sm font-semibold text-indigo-400 hover:text-indigo-300 shrink-0 ml-3 whitespace-nowrap flex items-center"
               >
                 {actionLabel}
               </button>
