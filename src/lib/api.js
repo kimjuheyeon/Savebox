@@ -1,5 +1,5 @@
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { getGuestContents, addGuestContent, removeGuestContent, clearGuestContents, getGuestCollections, addGuestCollection, removeGuestCollection, clearGuestCollections } from '@/lib/guestStorage';
+import { getGuestContents, addGuestContent, updateGuestContent, removeGuestContent, clearGuestContents, getGuestCollections, addGuestCollection, removeGuestCollection, clearGuestCollections } from '@/lib/guestStorage';
 
 function getClient() {
   return getSupabaseBrowserClient();
@@ -272,6 +272,23 @@ export async function createContent({ title, url, thumbnailUrl, memo, source, co
 }
 
 export async function updateContent(id, updates) {
+  if (typeof id === 'string' && id.startsWith('guest_')) {
+    const guestUpdates = {};
+    if (updates.title !== undefined) guestUpdates.title = updates.title;
+    if (updates.url !== undefined) guestUpdates.url = updates.url;
+    if (updates.thumbnailUrl !== undefined) guestUpdates.thumbnail_url = updates.thumbnailUrl;
+    if (updates.memo !== undefined) guestUpdates.memo = updates.memo;
+    if (updates.source !== undefined) guestUpdates.source = updates.source;
+    if (updates.collectionId !== undefined) guestUpdates.collection_id = updates.collectionId || null;
+    const updated = updateGuestContent(id, guestUpdates);
+    if (!updated) throw new Error('게스트 콘텐츠를 찾을 수 없습니다.');
+    if (updated.collection_id) {
+      const cols = getGuestCollections();
+      updated.collection = cols.find((c) => c.id === updated.collection_id) || null;
+    }
+    return updated;
+  }
+
   const supabase = getClient();
   const dbUpdates = {};
   if (updates.title !== undefined) dbUpdates.title = updates.title;

@@ -293,7 +293,7 @@ export default function ContentDetailPage({ params }) {
               )}
               {safeSource}
             </p>
-            <h1 className="mt-2 text-2xl font-bold leading-snug text-slate-100">{safeTitle}</h1>
+            <h1 className="mt-2 line-clamp-3 text-2xl font-bold leading-snug text-slate-100">{safeTitle}</h1>
             <p className="mt-2 text-sm text-[#777777]">컬렉션: {linkedCollection?.name || '미분류'}</p>
           </div>
 

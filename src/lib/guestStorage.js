@@ -27,6 +27,16 @@ export function addGuestContent(item) {
   return newItem;
 }
 
+export function updateGuestContent(id, updates) {
+  const items = getGuestContents();
+  const idx = items.findIndex((i) => i.id === id);
+  if (idx === -1) return null;
+  const updated = { ...items[idx], ...updates };
+  items[idx] = updated;
+  localStorage.setItem(GUEST_KEY, JSON.stringify(items));
+  return updated;
+}
+
 export function removeGuestContent(id) {
   const items = getGuestContents().filter((i) => i.id !== id);
   localStorage.setItem(GUEST_KEY, JSON.stringify(items));

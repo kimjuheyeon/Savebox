@@ -610,7 +610,7 @@ function ContentPageInner() {
                 onClick={() => setShowLoginNudge(true)}
                 className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-[#3385FF]/40 bg-[#101010]/90 px-3 py-1.5 text-xs font-semibold text-[#3385FF] shadow backdrop-blur transition hover:bg-[#1a2a4a] active:bg-[#1f3060]"
               >
-                <span className="text-slate-400">무료 저장</span>
+                <span className="text-slate-400">저장 가능</span>
                 <span>{guestCount}/{GUEST_LIMIT}</span>
               </button>
             )}
@@ -651,17 +651,17 @@ function ContentPageInner() {
               </div>
               <div className="mb-6 text-center">
                 <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#3385FF]/15 text-3xl">
-                  📦
+                  🔒
                 </div>
                 <h2 className="text-lg font-bold text-slate-100">
-                  무료 저장 {GUEST_LIMIT}개를 모두 사용했어요
+                  로그인하면 무제한으로 저장할 수 있어요
                 </h2>
                 <p className="mt-2 text-sm leading-relaxed text-[#777777]">
-                  로그인하면 SaveBox를 무제한으로<br />자유롭게 사용할 수 있어요.
+                  로그인하면 저장한 콘텐츠가 클라우드에<br />안전하게 보관되고 무제한으로 저장할 수 있어요.
                 </p>
                 <div className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/15 px-4 py-3">
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-[10px]">✓</span>
-                  <p className="text-[13px] font-medium text-emerald-400">저장한 콘텐츠는 로그인 시 자동으로 옮겨져요</p>
+                  <p className="text-[13px] font-medium text-emerald-400">지금 저장한 콘텐츠도 자동으로 옮겨져요</p>
                 </div>
               </div>
               <GoogleMaterialButton
