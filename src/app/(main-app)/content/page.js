@@ -3,13 +3,13 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowUpDown, LayoutGrid, Loader2, List, MoreHorizontal, PencilLine, Plus, Search, Trash2, X } from 'lucide-react';
+import { ArrowUpDown, Check, LayoutGrid, Loader2, List, MoreHorizontal, PencilLine, Plus, Search, Trash2, X } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { SNS_SOURCES, getSourceMeta, shortDate } from '@/lib/prototypeData';
 import { Button } from '@/components/ui/button';
 import { ICON_BUTTON_BASE_CLASS, ICON_BUTTON_ICON_SIZE, ICON_BUTTON_SIZE_CLASS } from '@/lib/iconUI';
-import { fetchContents, fetchCollections, createContent, deleteContent } from '@/lib/api';
-import { getGuestContents, clearGuestContents, GUEST_LIMIT } from '@/lib/guestStorage';
+import { fetchContents, fetchCollections, createContent, deleteContent, migrateGuestData } from '@/lib/api';
+import { getGuestContents, GUEST_LIMIT } from '@/lib/guestStorage';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import GoogleMaterialButton from '@/components/GoogleMaterialButton';
 
@@ -64,13 +64,15 @@ function ContentPageInner() {
   const [newSource, setNewSource] = useState('Other');
   const [newMemo, setNewMemo] = useState('');
   const [newThumbnail, setNewThumbnail] = useState('');
-  const [newCollectionId, setNewCollectionId] = useState('');
+  const [newCollectionId, setNewCollectionId] = useState(collectionParam || '');
   const [creating, setCreating] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
   const [guestCount, setGuestCount] = useState(0);
   const [showLoginNudge, setShowLoginNudge] = useState(false);
   const [nudgeLoading, setNudgeLoading] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
   const fetchedUrlRef = useRef('');
 
   useEffect(() => {
@@ -89,27 +91,7 @@ function ContentPageInner() {
 
         // 로그인 직후 게스트 데이터 마이그레이션
         if (!guest) {
-          const guestItems = getGuestContents();
-          if (guestItems.length > 0) {
-            // 즉시 localStorage를 비워서 중복 실행 방지
-            clearGuestContents();
-            const userId = session.user.id;
-            const rows = guestItems.map((item) => ({
-              user_id: userId,
-              title: item.title,
-              url: item.url,
-              thumbnail_url: item.thumbnail_url || null,
-              memo: item.memo || null,
-              source: item.source || 'Other',
-            }));
-            const { error: migrateError } = await supabase
-              .from('contents')
-              .insert(rows);
-            if (migrateError) {
-              // 실패 시 게스트 데이터 복원
-              localStorage.setItem('savebox_guest_contents', JSON.stringify(guestItems));
-            }
-          }
+          await migrateGuestData();
         }
 
         const [contentsResult, cols] = await Promise.all([
@@ -190,13 +172,39 @@ function ContentPageInner() {
     setGridMenuId(null);
   };
 
+  const toggleEditing = () => {
+    setEditing((prev) => !prev);
+    setSelectedIds([]);
+    setGridMenuId(null);
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id],
+    );
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`선택한 콘텐츠 ${selectedIds.length}개를 삭제하시겠습니까?`)) return;
+    try {
+      await Promise.all(selectedIds.map((id) => deleteContent(id)));
+      setAllContents((prev) => prev.filter((item) => !selectedIds.includes(item.id)));
+      if (isGuest) setGuestCount(getGuestContents().length);
+      setSelectedIds([]);
+      setEditing(false);
+    } catch {
+      alert('삭제에 실패했습니다.');
+    }
+  };
+
   const resetCreateForm = () => {
     setNewTitle('');
     setNewUrl('');
     setNewSource('Other');
     setNewMemo('');
     setNewThumbnail('');
-    setNewCollectionId('');
+    setNewCollectionId(collectionParam || '');
     setShowCreate(false);
     fetchedUrlRef.current = '';
   };
@@ -330,12 +338,20 @@ function ContentPageInner() {
       <PageHeader
         title="콘텐츠 목록"
         rightContent={
-          <Link
-            href="/search"
-            className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-lg border border-[#323232] text-[#777777] transition hover:bg-[#212b42] active:bg-[#283350]`}
-          >
-            <Search size={ICON_BUTTON_ICON_SIZE} />
-          </Link>
+          <>
+            <button
+              onClick={toggleEditing}
+              className="rounded-[8px] border border-[#323232] px-3 py-1.5 text-xs font-semibold text-[#777777] transition hover:bg-[#212b42] active:bg-[#283350]"
+            >
+              {editing ? '완료' : '편집'}
+            </button>
+            <Link
+              href="/search"
+              className={`${ICON_BUTTON_BASE_CLASS} ${ICON_BUTTON_SIZE_CLASS} rounded-lg border border-[#323232] text-[#777777] transition hover:bg-[#212b42] active:bg-[#283350]`}
+            >
+              <Search size={ICON_BUTTON_ICON_SIZE} />
+            </Link>
+          </>
         }
       >
         <div className="mt-3 grid grid-cols-2 gap-2">
@@ -441,57 +457,100 @@ function ContentPageInner() {
             const title = item.title || '제목 없음';
             const sourceName = item.source || 'Other';
             const source = getSourceMeta(sourceName);
+            const isSelected = selectedIds.includes(item.id);
             return (
               <div
                 key={item.id}
-                className="relative overflow-hidden rounded-2xl border border-[#323232] bg-[#1E1E1E] shadow-sm"
+                className={`relative overflow-hidden rounded-2xl border bg-[#1E1E1E] shadow-sm transition ${
+                  editing && isSelected ? 'border-[#3385FF]' : 'border-[#323232]'
+                }`}
               >
-                <Link href={`/content/${item.id}`}>
-                  <div className="aspect-square bg-[#353535]">
-                    {item.thumbnail_url ? (
-                      <img src={item.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center p-3">
-                        {source.iconSrc ? (
-                          <img src={source.iconSrc} alt={sourceName} className="h-8 w-8 object-contain opacity-60" />
-                        ) : (
-                          <span className="text-2xl font-black text-[#616161]">{sourceName.charAt(0)}</span>
-                        )}
+                {editing ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleSelect(item.id)}
+                    className="w-full text-left"
+                  >
+                    <div className="aspect-square bg-[#353535]">
+                      {item.thumbnail_url ? (
+                        <img src={item.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center p-3">
+                          {source.iconSrc ? (
+                            <img src={source.iconSrc} alt={sourceName} className="h-8 w-8 object-contain opacity-60" />
+                          ) : (
+                            <span className="text-2xl font-black text-[#616161]">{sourceName.charAt(0)}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <p className="line-clamp-2 text-sm font-semibold text-slate-100">{title}</p>
+                      <div className="mt-2">
+                        <p className={`inline-block rounded-full px-2 py-0.5 text-[10px] ${source.badge}`}>{sourceName}</p>
+                      </div>
+                    </div>
+                  </button>
+                ) : (
+                  <Link href={`/content/${item.id}`}>
+                    <div className="aspect-square bg-[#353535]">
+                      {item.thumbnail_url ? (
+                        <img src={item.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center p-3">
+                          {source.iconSrc ? (
+                            <img src={source.iconSrc} alt={sourceName} className="h-8 w-8 object-contain opacity-60" />
+                          ) : (
+                            <span className="text-2xl font-black text-[#616161]">{sourceName.charAt(0)}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <p className="line-clamp-2 text-sm font-semibold text-slate-100">{title}</p>
+                      <div className="mt-2">
+                        <p className={`inline-block rounded-full px-2 py-0.5 text-[10px] ${source.badge}`}>{sourceName}</p>
+                      </div>
+                    </div>
+                  </Link>
+                )}
+                {editing ? (
+                  <div
+                    className={`absolute right-2 top-2 z-[5] grid h-6 w-6 place-items-center rounded-[4px] border transition ${
+                      isSelected ? 'bg-[#3385FF] border-[#3385FF] text-white' : 'border-[#555] bg-black/60 backdrop-blur'
+                    }`}
+                  >
+                    {isSelected && <Check size={14} />}
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setGridMenuId(gridMenuId === item.id ? null : item.id)}
+                      className="absolute right-2 top-2 z-[5] rounded-full bg-black/60 p-1.5 text-[#777777] shadow-sm backdrop-blur transition hover:bg-black/80 active:bg-black/90"
+                      aria-label="더보기"
+                    >
+                      <MoreHorizontal size={16} />
+                    </button>
+                    {gridMenuId === item.id && (
+                      <div className="absolute right-2 top-10 z-10 w-32 rounded-xl border border-[#323232] bg-[#1E1E1E] py-1 shadow-lg">
+                        <Link
+                          href={`/content/${item.id}?edit=true`}
+                          className="flex w-full items-center gap-2 px-3 py-2 text-xs text-[#777777] transition hover:bg-[#212b42] active:bg-[#283350]"
+                        >
+                          <PencilLine size={12} />
+                          수정
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="flex w-full items-center gap-2 px-3 py-2 text-xs text-rose-400 transition hover:bg-rose-950/30 active:bg-rose-950/50"
+                        >
+                          <Trash2 size={12} />
+                          삭제
+                        </button>
                       </div>
                     )}
-                  </div>
-                  <div className="p-3">
-                    <p className="line-clamp-2 text-sm font-semibold text-slate-100">{title}</p>
-                    <div className="mt-2">
-                      <p className={`inline-block rounded-full px-2 py-0.5 text-[10px] ${source.badge}`}>{sourceName}</p>
-                    </div>
-                  </div>
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => setGridMenuId(gridMenuId === item.id ? null : item.id)}
-                  className="absolute right-2 top-2 z-[5] rounded-full bg-black/60 p-1.5 text-[#777777] shadow-sm backdrop-blur transition hover:bg-black/80 active:bg-black/90"
-                  aria-label="더보기"
-                >
-                  <MoreHorizontal size={16} />
-                </button>
-                {gridMenuId === item.id && (
-                  <div className="absolute right-2 top-10 z-10 w-32 rounded-xl border border-[#323232] bg-[#1E1E1E] py-1 shadow-lg">
-                    <Link
-                      href={`/content/${item.id}?edit=true`}
-                      className="flex w-full items-center gap-2 px-3 py-2 text-xs text-[#777777] transition hover:bg-[#212b42] active:bg-[#283350]"
-                    >
-                      <PencilLine size={12} />
-                      수정
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="flex w-full items-center gap-2 px-3 py-2 text-xs text-rose-400 transition hover:bg-rose-950/30 active:bg-rose-950/50"
-                    >
-                      <Trash2 size={12} />
-                      삭제
-                    </button>
-                  </div>
+                  </>
                 )}
               </div>
             );
@@ -505,6 +564,9 @@ function ContentPageInner() {
             <SwipeableListItem
               key={item.id}
               item={item}
+              editing={editing}
+              selected={selectedIds.includes(item.id)}
+              onToggleSelect={() => toggleSelect(item.id)}
               onDelete={() => handleDelete(item.id)}
             />
           ))}
@@ -515,38 +577,60 @@ function ContentPageInner() {
         <div className="fixed inset-0 z-0" onClick={() => setGridMenuId(null)} />
       )}
 
+      {/* 편집 모드 하단 바 */}
+      {editing && (
+        <div
+          className="pointer-events-none fixed bottom-0 left-1/2 z-20 w-full max-w-[440px] -translate-x-1/2"
+          style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom, 0px) + 16px)' }}
+        >
+          <div className="pointer-events-auto mx-4 flex items-center justify-between rounded-2xl border border-[#323232] bg-[#1E1E1E] px-4 py-3 shadow-xl">
+            <p className="text-xs text-[#777777]">{selectedIds.length}개 선택됨</p>
+            <button
+              onClick={handleBulkDelete}
+              disabled={selectedIds.length === 0}
+              className="inline-flex items-center gap-1.5 rounded-[8px] bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-500 active:bg-rose-400 disabled:bg-rose-900 disabled:pointer-events-none"
+            >
+              <Trash2 size={12} />
+              삭제
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* FAB */}
-      <div
-        className="pointer-events-none fixed bottom-0 left-1/2 z-20 w-full max-w-[440px] -translate-x-1/2"
-        style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom, 0px) + 32px)' }}
-      >
-        <div className="flex flex-col items-end gap-2 px-4">
-          {isGuest && (
+      {!editing && (
+        <div
+          className="pointer-events-none fixed bottom-0 left-1/2 z-20 w-full max-w-[440px] -translate-x-1/2"
+          style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom, 0px) + 32px)' }}
+        >
+          <div className="flex flex-col items-end gap-2 px-4">
+            {isGuest && (
+              <button
+                type="button"
+                onClick={() => setShowLoginNudge(true)}
+                className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-[#3385FF]/40 bg-[#101010]/90 px-3 py-1.5 text-xs font-semibold text-[#3385FF] shadow backdrop-blur transition hover:bg-[#1a2a4a] active:bg-[#1f3060]"
+              >
+                <span className="text-slate-400">무료 저장</span>
+                <span>{guestCount}/{GUEST_LIMIT}</span>
+              </button>
+            )}
             <button
               type="button"
-              onClick={() => setShowLoginNudge(true)}
-              className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-[#3385FF]/40 bg-[#101010]/90 px-3 py-1.5 text-xs font-semibold text-[#3385FF] shadow backdrop-blur transition hover:bg-[#1a2a4a] active:bg-[#1f3060]"
+              onClick={() => {
+                if (isGuest && guestCount >= GUEST_LIMIT) {
+                  setShowLoginNudge(true);
+                } else {
+                  setShowCreate(true);
+                }
+              }}
+              className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-[#3385FF] px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-[#2f78f0] active:bg-[#2669d9]"
             >
-              <span className="text-slate-400">무료 저장</span>
-              <span>{guestCount}/{GUEST_LIMIT}</span>
+              <Plus size={16} />
+              새 콘텐츠 추가
             </button>
-          )}
-          <button
-            type="button"
-            onClick={() => {
-              if (isGuest && guestCount >= GUEST_LIMIT) {
-                setShowLoginNudge(true);
-              } else {
-                setShowCreate(true);
-              }
-            }}
-            className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-[#3385FF] px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-[#2f78f0] active:bg-[#2669d9]"
-          >
-            <Plus size={16} />
-            새 콘텐츠 추가
-          </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 로그인 유도 바텀시트 */}
       {showLoginNudge && (
@@ -744,7 +828,7 @@ function ContentPageInner() {
   );
 }
 
-function SwipeableListItem({ item, onDelete }) {
+function SwipeableListItem({ item, editing, selected, onToggleSelect, onDelete }) {
   const safeItem = item || {};
   const title = safeItem.title || '제목 없음';
   const sourceName = safeItem.source || 'Other';
@@ -786,6 +870,45 @@ function SwipeableListItem({ item, onDelete }) {
     setOffset(0);
     setShowActions(false);
   };
+
+  if (editing) {
+    return (
+      <button
+        type="button"
+        onClick={onToggleSelect}
+        className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition ${
+          selected ? 'border-[#3385FF] bg-[#1a2a42]' : 'border-[#323232] bg-[#1E1E1E]'
+        }`}
+      >
+        <div
+          className={`grid h-6 w-6 shrink-0 place-items-center rounded-[4px] border transition ${
+            selected ? 'bg-[#3385FF] border-[#3385FF] text-white' : 'border-[#555] bg-[#2a2a2a]'
+          }`}
+        >
+          {selected && <Check size={14} />}
+        </div>
+        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-[#353535]">
+          {safeItem.thumbnail_url ? (
+            <img src={safeItem.thumbnail_url} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center p-1">
+              {source.iconSrc ? (
+                <img src={source.iconSrc} alt={sourceName} className="h-6 w-6 object-contain opacity-60" />
+              ) : (
+                <span className="text-lg font-black text-[#616161]">{sourceName.charAt(0)}</span>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="line-clamp-2 text-sm font-semibold text-slate-100">{title}</p>
+          <p className="mt-0.5 text-xs text-[#777777]">
+            {sourceName} · {shortDate(safeItem.created_at || new Date(0))}
+          </p>
+        </div>
+      </button>
+    );
+  }
 
   return (
     <div
