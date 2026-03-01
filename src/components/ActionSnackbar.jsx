@@ -22,23 +22,24 @@ export default function ActionSnackbar({
     >
       <div className="mx-auto max-w-[440px] px-4">
         <div
-          className="flex h-[52px] items-center justify-between gap-3 px-4 rounded-2xl backdrop-blur-xl"
+          className="flex h-[52px] items-center justify-between gap-3 px-4 rounded-2xl shadow-lg border border-gray-200"
           style={{
-            backgroundColor: 'rgb(30 30 30 / var(--tw-bg-opacity, 1))',
+            backgroundColor: '#ffffff',
           }}
         >
         <div className="flex min-w-0 items-center gap-2.5">
           <div className="h-5 w-5 rounded-full bg-green-500 flex items-center justify-center shrink-0">
             <span className="text-white text-xs font-bold">✓</span>
           </div>
-          <span className="truncate text-sm font-medium text-white">{message}</span>
+          <span className="truncate text-sm font-medium text-gray-900">{message}</span>
         </div>
         {actionLabel && (onAction || actionHref) && (
           <>
             {actionHref ? (
               <a
                 href={actionHref}
-                className="text-sm font-semibold text-indigo-400 hover:text-indigo-300 shrink-0 ml-3 whitespace-nowrap flex items-center"
+                className="text-sm font-semibold shrink-0 ml-3 whitespace-nowrap flex items-center"
+                style={{ color: 'rgb(47 120 240)' }}
               >
                 {actionLabel}
               </a>
@@ -46,7 +47,8 @@ export default function ActionSnackbar({
               <button
                 type="button"
                 onClick={onActionClick}
-                className="text-sm font-semibold text-indigo-400 hover:text-indigo-300 shrink-0 ml-3 whitespace-nowrap flex items-center"
+                className="text-sm font-semibold shrink-0 ml-3 whitespace-nowrap flex items-center"
+                style={{ color: 'rgb(47 120 240)' }}
               >
                 {actionLabel}
               </button>
