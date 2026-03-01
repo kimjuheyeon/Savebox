@@ -1,4 +1,5 @@
 const GUEST_KEY = 'savebox_guest_contents';
+const GUEST_COLLECTIONS_KEY = 'savebox_guest_collections';
 export const GUEST_LIMIT = 5;
 
 export function getGuestContents() {
@@ -34,4 +35,40 @@ export function removeGuestContent(id) {
 export function clearGuestContents() {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(GUEST_KEY);
+}
+
+// ─── Guest Collections ────────────────────────────
+
+export function getGuestCollections() {
+  if (typeof window === 'undefined') return [];
+  try {
+    return JSON.parse(localStorage.getItem(GUEST_COLLECTIONS_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+export function addGuestCollection({ name, description }) {
+  const items = getGuestCollections();
+  const newCol = {
+    id: 'guest_col_' + Date.now(),
+    name,
+    description: description || null,
+    color_tag: 'Blue',
+    is_system: false,
+    item_count: 0,
+    created_at: new Date().toISOString(),
+  };
+  localStorage.setItem(GUEST_COLLECTIONS_KEY, JSON.stringify([...items, newCol]));
+  return newCol;
+}
+
+export function removeGuestCollection(id) {
+  const items = getGuestCollections().filter((c) => c.id !== id);
+  localStorage.setItem(GUEST_COLLECTIONS_KEY, JSON.stringify(items));
+}
+
+export function clearGuestCollections() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(GUEST_COLLECTIONS_KEY);
 }
